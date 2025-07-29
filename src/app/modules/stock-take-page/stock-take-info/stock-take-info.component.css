@@ -1,0 +1,83 @@
+.stock-take-info-card {
+  background: #fff;
+  padding: 2rem;
+  margin: 2rem auto;
+  border-radius: 8px;
+  max-width: 800px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  h3 {
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+    font-size: 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.5rem;
+  }
+
+  .info-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+
+    label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+
+    .form-control {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      transition: border-color 0.3s ease;
+
+      &:focus {
+        border-color: #007bff;
+        outline: none;
+      }
+    }
+  }
+
+  .filter-section {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+
+    .form-group {
+      flex: 1 1 200px;
+    }
+  }
+
+  .info-section {
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    background: #f9f9f9;
+    padding: 1rem;
+    border-radius: 6px;
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+
+      .info-label {
+        font-weight: 500;
+        color: #666;
+        margin-bottom: 0.3rem;
+      }
+
+      .info-value {
+        font-size: 1rem;
+        color: #2c3e50;
+      }
+    }
+  }
+}

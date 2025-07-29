@@ -1,0 +1,48 @@
+<div class="add-uld-card">
+  <h3>Add ULD</h3>
+
+  <form [formGroup]="uldForm" class="uld-form">
+    <div class="form-group">
+      <label for="uldId">ULD ID</label>
+      <input
+        id="uldId"
+        type="text"
+        formControlName="uldId"
+        class="form-control"
+        placeholder="Enter ULD ID (e.g., AKH123456XX)"
+        (keyup.enter)="onKeyPress($event)"
+        [class.is-invalid]="uldId?.invalid && (uldId?.dirty || uldId?.touched)"
+      >
+      <div *ngIf="uldId?.invalid && (uldId?.dirty || uldId?.touched)" class="invalid-feedback">
+        <div *ngIf="uldId?.errors?.['required']">ULD ID is required</div>
+        <div *ngIf="uldId?.errors?.['pattern']">Invalid ULD format (e.g., AKH123456XX)</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="location">Location</label>
+      <select id="location" formControlName="location" class="form-control">
+        <option value="XX-FRA-Standard">XX-FRA-Standard</option>
+        <option value="XX-FRA-Baggage">XX-FRA-Baggage</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="condition">Condition</label>
+      <select id="condition" formControlName="condition" class="form-control">
+        <option value="Serviceable">Serviceable</option>
+        <option value="Damaged">Damaged</option>
+      </select>
+    </div>
+
+    <button
+      type="button"
+      class="add-button"
+      (click)="addUld()"
+      [disabled]="uldForm.invalid || isLoading"
+    >
+      <span *ngIf="!isLoading">Add ULD</span>
+      <span *ngIf="isLoading" class="spinner"></span>
+    </button>
+  </form>
+</div>

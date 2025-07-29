@@ -1,0 +1,59 @@
+<div class="stock-take-info-card">
+  <h3>Stock Take Information</h3>
+
+  <form [formGroup]="infoForm" class="info-form">
+    <div class="form-group">
+      <label for="location">Location</label>
+      <select id="location" formControlName="location" class="form-control">
+        <option value="">Select Location</option>
+        <option *ngFor="let location of locations$ | async" [value]="location.id">
+          {{ location.locationName }} ({{ location.locationShortCode }})
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-section">
+      <div class="form-group">
+        <label for="groupFilter">Group</label>
+        <select id="groupFilter" formControlName="groupFilter" class="form-control">
+          <option value="">All Groups</option>
+          <option *ngFor="let group of groups$ | async" [value]="group.uldGroupId">
+            {{ group.uldGroupShortName }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="uldTypeFilter">ULD Type</label>
+        <select id="uldTypeFilter" formControlName="uldTypeFilter" class="form-control">
+          <option value="">All Types</option>
+          <option *ngFor="let type of uldTypes$ | async" [value]="type.uldTypeId">
+            {{ type.uldTypeShortCode }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <div class="info-item">
+        <span class="info-label">Reference:</span>
+        <span class="info-value">{{ (stockTakeInfo$ | async)?.identifier }}</span>
+      </div>
+
+      <div class="info-item">
+        <span class="info-label">Status:</span>
+        <span class="info-value">{{ (stockTakeInfo$ | async)?.statusId }}</span>
+      </div>
+
+      <div class="info-item">
+        <span class="info-label">Start Date:</span>
+        <span class="info-value">{{ (stockTakeInfo$ | async)?.startDateLocal | date:'medium' }}</span>
+      </div>
+
+      <div class="info-item">
+        <span class="info-label">Company:</span>
+        <span class="info-value">{{ (stockTakeInfo$ | async)?.companyShortCode }}</span>
+      </div>
+    </div>
+  </form>
+</div>

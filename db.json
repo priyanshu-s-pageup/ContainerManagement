@@ -1,0 +1,148 @@
+{
+  "stockTakeInfo": {
+      "identifier": "FRA-XX0560",
+      "companyShortCode": "LH",
+      "companyId": 2,
+      "originShortCode": "FRA",
+      "originId": 3675,
+      "startDateLocal": "2025-01-16T09:39:52.5103264Z",
+      "statusId": "InProgress",
+      "locations": [
+          {
+              "locationName": "LH-FRA-Cargo",
+              "locationShortName": "LH-Cargo",
+              "locationShortCode": "LHFRADF",
+              "locationCompanyShortCode": "LH",
+              "locationCompanyId": 2,
+              "locationPortShortCode": "FRA",
+              "locationPortId": 3675,
+              "id": 2
+          },
+          {
+              "locationName": "LH-FRA-Baggage",
+              "locationShortName": "LH-Baggage",
+              "locationShortCode": "LHFRABAG",
+              "locationCompanyShortCode": "LH",
+              "locationCompanyId": 2,
+              "locationPortShortCode": "FRA",
+              "locationPortId": 3675,
+              "id": 3
+          }
+      ],
+      "uldFilters": [
+          {
+              "uldGroupShortName": "LD CONT",
+              "uldGroupId": 82,
+              "id": 3
+          },
+          {
+              "uldGroupShortName": "PALLETS",
+              "uldGroupId": 83,
+              "id": 4
+          },
+          {
+              "uldTypeShortCode": "AKH",
+              "uldTypeId": 98,
+              "id": 5
+          },
+          {
+              "uldTypeShortCode": "AKE",
+              "uldTypeId": 100,
+              "id": 6
+          },
+          {
+              "uldTypeShortCode": "PMC",
+              "uldTypeId": 90,
+              "id": 7
+          }
+      ],
+      "items": [
+          {
+              "uldIdentifier": "AKH08623LH",
+              "uldUldTypeShortCode": "AKH",
+              "uldUldTypeId": 98,
+              "locationCurrentName": "LH-FRA-Cargo",
+              "locationCurrentShortName": "LH-Cargo",
+              "locationCurrentShortCode": "LHFRADF",
+              "locationCurrentCompanyShortCode": "LH",
+              "locationCurrentCompanyId": 2,
+              "locationCurrentPortShortCode": "FRA",
+              "locationCurrentPortId": 3675,
+              "conditionId": "Serviceable",
+              "isFound": true,
+              "id": 2
+          },
+          {
+              "uldIdentifier": "AKH11623LH",
+              "uldUldTypeShortCode": "AKH",
+              "uldUldTypeId": 98,
+              "locationCurrentName": "LH-FRA-Cargo",
+              "locationCurrentShortName": "LH-Cargo",
+              "locationCurrentShortCode": "LHFRADF",
+              "locationCurrentCompanyShortCode": "LH",
+              "locationCurrentCompanyId": 2,
+              "locationCurrentPortShortCode": "FRA",
+              "locationCurrentPortId": 3675,
+              "conditionId": "Damaged",
+              "isFound": false,
+              "id": 3
+          },
+          {
+              "uldIdentifier": "PMC13754LH",
+              "uldUldTypeShortCode": "PMC",
+              "uldUldTypeId": 90,
+              "locationCurrentName": "LH-FRA-Baggage",
+              "locationCurrentShortName": "LH-Baggage",
+              "locationCurrentShortCode": "LHFRABAG",
+              "locationCurrentCompanyShortCode": "LH",
+              "locationCurrentCompanyId": 2,
+              "locationCurrentPortShortCode": "FRA",
+              "locationCurrentPortId": 3675,
+              "locationNewName": "LH-FRA-Cargo",
+              "locationNewShortName": "LH-Cargo",
+              "locationNewShortCode": "LHFRADF",
+              "locationNewCompanyShortCode": "LH",
+              "locationNewCompanyId": 2,
+              "locationNewPortShortCode": "FRA",
+              "locationNewPortId": 3675,
+              "conditionId": "Serviceable",
+              "isFound": false,
+              "id": 4
+          },
+          {
+              "uldIdentifier": "AKE12654LH",
+              "uldUldTypeShortCode": "AKE",
+              "uldUldTypeId": 100,
+              "locationCurrentName": "LH-FRA-Cargo",
+              "locationCurrentShortName": "LH-Cargo",
+              "locationCurrentShortCode": "LHFRADF",
+              "locationCurrentCompanyShortCode": "LH",
+              "locationCurrentCompanyId": 2,
+              "locationCurrentPortShortCode": "FRA",
+              "locationCurrentPortId": 3675,
+              "conditionId": "Serviceable",
+              "isFound": true,
+              "id": 5
+          },
+          {
+              "uldIdentifier": "AKH02953LH",
+              "uldUldTypeShortCode": "AKH",
+              "uldUldTypeId": 98,
+              "locationCurrentName": "LH-FRA-Baggage",
+              "locationCurrentShortName": "LH-Baggage",
+              "locationCurrentShortCode": "LHFRABAG",
+              "locationCurrentCompanyShortCode": "LH",
+              "locationCurrentCompanyId": 2,
+              "locationCurrentPortShortCode": "FRA",
+              "locationCurrentPortId": 3675,
+              "conditionId": "Serviceable",
+              "isFound": true,
+              "id": 6
+          }
+      ],
+      "statusChangedAt": "2025-01-16T08:39:52.5103264Z",
+      "createdAt": "2025-01-16T08:39:52.5103264Z",
+      "id": 2
+  }
+
+}
