@@ -1,10 +1,11 @@
 <div class="add-uld-card">
-  <h3>Add ULD</h3>
-
   <form [formGroup]="uldForm" class="uld-form">
+
+    <!-- ULD ID -->
     <div class="form-group">
       <label for="uldId">ULD ID</label>
       <input
+        #uldIdInput
         id="uldId"
         type="text"
         formControlName="uldId"
@@ -14,11 +15,12 @@
         [class.is-invalid]="uldId?.invalid && (uldId?.dirty || uldId?.touched)"
       >
       <div *ngIf="uldId?.invalid && (uldId?.dirty || uldId?.touched)" class="invalid-feedback">
-        <div *ngIf="uldId?.errors?.['required']">ULD ID is required</div>
-        <div *ngIf="uldId?.errors?.['pattern']">Invalid ULD format (e.g., AKH123456XX)</div>
+        <!-- <div *ngIf="uldId?.errors?.['required']">ULD ID is required</div>
+        <div *ngIf="uldId?.errors?.['pattern']">Invalid ULD format (e.g., AKH123456XX)</div> -->
       </div>
     </div>
 
+    <!-- Location -->
     <div class="form-group">
       <label for="location">Location</label>
       <select id="location" formControlName="location" class="form-control">
@@ -27,6 +29,7 @@
       </select>
     </div>
 
+    <!-- Condition -->
     <div class="form-group">
       <label for="condition">Condition</label>
       <select id="condition" formControlName="condition" class="form-control">
@@ -41,8 +44,11 @@
       (click)="addUld()"
       [disabled]="uldForm.invalid || isLoading"
     >
-      <span *ngIf="!isLoading">Add ULD</span>
+      <ng-container *ngIf="!isLoading">
+        <mat-icon>add</mat-icon>
+      </ng-container>
       <span *ngIf="isLoading" class="spinner"></span>
     </button>
+
   </form>
 </div>

@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
 import { StockTakeInfoComponent } from "./stock-take-info/stock-take-info.component";
 import { AddUldComponent } from "./add-uld/add-uld.component";
+import { StockTakeGridComponent } from "./stock-take-grid/stock-take-grid.component";
+
 
 @Component({
   selector: 'app-stock-take-page',
-  imports: [StockTakeInfoComponent, AddUldComponent],
+  imports: [StockTakeInfoComponent, AddUldComponent, StockTakeGridComponent],
   templateUrl: './stock-take-page.component.html',
   styleUrl: './stock-take-page.component.css'
 })

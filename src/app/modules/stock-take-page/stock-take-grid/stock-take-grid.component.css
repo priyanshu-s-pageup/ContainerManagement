@@ -1,0 +1,132 @@
+.stock-take-grid {
+  font-family: Arial, sans-serif;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.location-group {
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.location-header {
+  background-color: #f0f0f0;
+  padding: 10px 15px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.type-header {
+  background-color: #f8f8f8;
+  padding: 8px 15px 8px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+.type-header.additional-ulds {
+  background-color: #fff8e1;
+}
+
+.toggle-icon {
+  margin-right: 10px;
+  width: 15px;
+  display: inline-block;
+}
+
+.location-name {
+  flex-grow: 1;
+  font-weight: bold;
+}
+
+.type-name {
+  flex-grow: 1;
+}
+
+.location-totals,
+.type-totals {
+  color: #666;
+  font-size: 0.9em;
+  margin-left: 10px;
+}
+
+.uld-container {
+  padding-left: 45px;
+}
+
+.uld-row {
+  display: flex;
+  padding: 8px 15px;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.uld-row.additional {
+  background-color: #fff8e1;
+}
+
+.uld-identifier {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+}
+
+.uld-checkbox {
+  margin-right: 10px;
+}
+
+.uld-condition {
+  width: 80px;
+}
+
+.uld-actions {
+  width: 40px;
+  text-align: right;
+}
+
+.remove-icon {
+  cursor: pointer;
+  color: #e53935; /* Red color for removal */
+  font-size: 20px;
+}
+
+.condition-select {
+  padding: 3px 6px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  background-color: #e8f5e9;
+}
+
+.condition-select option[value="Damaged"] {
+  background-color: #ffebee;
+}
+
+/* Highlight damaged ULDs */
+.uld-row select[value="Damaged"],
+.uld-row select option[value="Damaged"]:checked {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .location-header,
+  .type-header {
+    flex-wrap: wrap;
+  }
+
+  .location-totals,
+  .type-totals {
+    width: 100%;
+    margin-left: 25px;
+    margin-top: 5px;
+  }
+}

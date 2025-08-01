@@ -1,21 +1,24 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UldService } from '../../../shared/services/uld-service/uld.service';
 import { UldAddResponse } from '../../../shared/models/uld.model';
 import { ConfirmationModalComponent } from '../../../shared/components/confirmation-modal/comfirmation-modal/confirmation-modal.component';
 import { MatDialog } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-add-uld',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatIcon],
   templateUrl: './add-uld.component.html',
   styleUrl: './add-uld.component.css',
 })
 export class AddUldComponent {
   @Output() uldAdded = new EventEmitter<any>();
-  uldForm: FormGroup;
-  isLoading = false;
+  public uldForm: FormGroup;
+  public isLoading = false;
+
+  @ViewChild('uldIdInput') uldIdInput!: ElementRef<HTMLInputElement>;
 
   constructor(
     private fb: FormBuilder,
@@ -39,22 +42,33 @@ export class AddUldComponent {
     return this.uldForm.get('uldId');
   }
 
-  public addUld(): void {
-    if (this.uldForm.invalid) return;
+  public addUld(inputElement?: HTMLInputElement): void {
+    if (this.uldForm.valid) {
+      this.isLoading = true;
+      const uldId = this.uldForm.value.uldId.toUpperCase();
 
-    this.isLoading = true;
-    const uldId = this.uldForm.value.uldId.toUpperCase();
+      this.uldService.addUld(uldId).subscribe({
+        next: (response) => {
+          this.handleAddResponse(response);
 
-    this.uldService.addUld(uldId).subscribe({
-      next: (response) => {
-        this.handleAddResponse(response);
-        this.uldForm.get('uldId')?.reset();
-      },
-      error: (err) => {
-        console.error('Error adding ULD:', err);
-        this.isLoading = false;
-      },
-    });
+          // Reset only the ULD ID field
+          this.uldForm.get('uldId')?.reset();
+
+          // ✅ Force focus after a small delay for change detection
+          setTimeout(() => {
+            this.uldIdInput.nativeElement.focus();
+          }, 0);
+        },
+        error: (err) => {
+          console.error('Error adding ULD:', err);
+          this.isLoading = false;
+        },
+      });
+    }
+  }
+
+  public focusUldInput(inputElement: HTMLInputElement) {
+    setTimeout(() => inputElement.focus(), 0);
   }
 
   private handleAddResponse(response: UldAddResponse): void {

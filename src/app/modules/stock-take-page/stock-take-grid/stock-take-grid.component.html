@@ -1,1 +1,80 @@
-<p>stock-take-grid works!</p>
+<div class="stock-take-grid">
+  <div *ngFor="let locationGroup of data" class="location-group">
+    <div class="location-header" (click)="toggleLocation(locationGroup.locationId)">
+      <span class="toggle-icon">{{expandedLocations[locationGroup.locationId] ? '▼' : '►'}}</span>
+      <span class="location-name">{{locationGroup.locationName}}</span>
+      <span class="location-totals">
+        Total: {{locationGroup.totalServiceable + locationGroup.totalDamaged}} |
+        SER: {{locationGroup.totalServiceable}} | DAM: {{locationGroup.totalDamaged}} | Open: {{locationGroup.totalOpen}}
+      </span>
+    </div>
+
+    <div *ngIf="expandedLocations[locationGroup.locationId]" class="type-container">
+      <div *ngFor="let typeGroup of locationGroup.uldTypes" class="type-group">
+        <div class="type-header" (click)="toggleType(typeGroup.typeId)">
+          <span class="toggle-icon">{{expandedTypes[typeGroup.typeId] ? '▼' : '►'}}</span>
+          <span class="type-name">{{typeGroup.typeName}}</span>
+          <span class="type-totals">
+            Total: {{typeGroup.totalServiceable + typeGroup.totalDamaged}} |
+            SER: {{typeGroup.totalServiceable}} | DAM: {{typeGroup.totalDamaged}} | Open: {{typeGroup.totalOpen}}
+          </span>
+        </div>
+
+        <div *ngIf="expandedTypes[typeGroup.typeId]" class="uld-container">
+          <div *ngFor="let uld of typeGroup.ulds" class="uld-row">
+            <div class="uld-identifier">
+              <input type="checkbox"
+                    [checked]="uld.isFound"
+                    (change)="onFoundStatusChange(uld.id, $event)"
+                    class="uld-checkbox">
+              {{uld.identifier}}
+            </div>
+            <div class="uld-condition">
+              <select [value]="uld.condition"
+                      (change)="onConditionChange(uld.id, $event)"
+                      class="condition-select">
+                <option value="Serviceable">SER</option>
+                <option value="Damaged">DAM</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional ULDs section -->
+      <div *ngIf="hasAdditionalUlds(locationGroup)" class="type-group additional-ulds">
+        <div class="type-header" (click)="toggleAdditionalUlds(locationGroup.locationId)">
+          <span class="toggle-icon">{{expandedAdditionalUlds[locationGroup.locationId] ? '▼' : '►'}}</span>
+          <span class="type-name">Additional ULDs</span>
+          <span class="type-totals">
+            Total: {{countAdditionalUlds(locationGroup)}} |
+            SER: {{countServiceableAdditional(locationGroup)}} | DAM: {{countDamagedAdditional(locationGroup)}}
+          </span>
+        </div>
+
+        <div *ngIf="expandedAdditionalUlds[locationGroup.locationId]" class="uld-container">
+          <div *ngFor="let uld of getAdditionalUlds(locationGroup)" class="uld-row additional">
+            <div class="uld-identifier">
+              <input type="checkbox"
+                    [checked]="uld.isFound"
+                    (change)="onFoundStatusChange(uld.id, $event)"
+                    class="uld-checkbox">
+              {{uld.identifier}}
+            </div>
+            <div class="uld-condition">
+              <select [value]="uld.condition"
+                      (change)="onConditionChange(uld.id, $event)"
+                      class="condition-select">
+                <option value="Serviceable">SER</option>
+                <option value="Damaged">DAM</option>
+              </select>
+            </div>
+            <div class="uld-actions">
+              <mat-icon class="remove-icon" (click)="onRemoveUld(uld.id)">delete_outline</mat-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

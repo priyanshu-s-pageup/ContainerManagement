@@ -1,91 +1,109 @@
 .add-uld-card {
   background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin-bottom: 20px;
-
-  h3 {
-    margin-top: 0;
-    color: #333;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-  }
-
-  .uld-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 15px;
-    align-items: flex-end;
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-
-      label {
-        font-weight: 500;
-        color: #555;
-      }
-
-      .form-control {
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
-        height: 40px;
-
-        &.is-invalid {
-          border-color: #dc3545;
-        }
-      }
-
-      .invalid-feedback {
-        color: #dc3545;
-        font-size: 12px;
-      }
-    }
-
-    .add-button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 0 20px;
-      height: 40px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      &:hover:not(:disabled) {
-        background-color: #0056b3;
-      }
-
-      &:disabled {
-        background-color: #cccccc;
-        cursor: not-allowed;
-      }
-
-      .spinner {
-        width: 20px;
-        height: 20px;
-        border: 3px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        border-top-color: white;
-        animation: spin 1s ease-in-out infinite;
-      }
-
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-    }
-  }
+  border-radius: 16px;
+  padding: 15px 25px;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  justify-content: center;
 }
 
+.uld-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto; /* 3 inputs + button */
+  align-items: flex-end;
+  gap: 25px;
+  max-width: 1000px;
+  width: 100%;
+}
+
+/* Form group styling */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+}
+
+/* Material-style underline input */
+.form-control {
+  border: none;
+  border-bottom: 2px solid #ddd;
+  border-radius: 0;
+  padding: 6px 2px;
+  font-size: 15px;
+  color: #333;
+  background: transparent;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.form-control:focus {
+  border-bottom-color: #ff7b00; /* Orange focus */
+}
+
+.form-control.is-invalid {
+  border-bottom-color: #dc3545;
+}
+
+.invalid-feedback {
+  color: #dc3545;
+  font-size: 11px;
+}
+
+/* Add button (floating orange circle) */
+.add-button {
+  background-color: #ff7b00;
+  color: white;
+  border: none;
+  border-radius: 10%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.add-button mat-icon {
+  font-size: 20px;
+  color: white;
+}
+
+.add-button:hover:not(:disabled) {
+  background-color: #e56f00;
+  transform: scale(1.05);
+}
+
+.add-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.add-button .spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive behavior */
 @media (max-width: 768px) {
   .uld-form {
     grid-template-columns: 1fr !important;
+    gap: 15px;
   }
 }
