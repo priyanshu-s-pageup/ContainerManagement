@@ -18,6 +18,8 @@ export class AddUldComponent {
   public uldForm: FormGroup;
   public isLoading = false;
 
+  public addedUlds: any[] = []; // any type, just for a moment...
+
   @ViewChild('uldIdInput') uldIdInput!: ElementRef<HTMLInputElement>;
 
   constructor(
@@ -42,30 +44,106 @@ export class AddUldComponent {
     return this.uldForm.get('uldId');
   }
 
+  // public addUld(inputElement?: HTMLInputElement): void {
+  //   if (this.uldForm.valid) {
+  //     this.isLoading = true;
+  //     const uldId = this.uldForm.value.uldId.toUpperCase();
+  //     const location = this.uldForm.value.location;
+  //     const condition = this.uldForm.value.condition;
+
+  //     // this.uldService.addUld(uldId).subscribe({
+  //     //   next: (response) => {
+  //     //     this.handleAddResponse(response);
+
+  //         this.uldForm.get('uldId')?.reset();
+
+  //         setTimeout(() => {
+  //           this.uldIdInput.nativeElement.focus();
+  //         }, 0);
+
+  //         this.isLoading = false;
+  //         if (success) {
+  //           // Emit complete ULD data, with location and condition from form
+  //           // this.uldAdded.emit({
+  //           //   uldIdentifier: uldId,
+  //           //   locationCurrentName: location,
+  //           //   conditionId: condition,
+  //           //   isFound: false,
+  //           //   // Add other necessary fields here, like uldUldTypeShortCode etc.
+  //           // });
+
+  //           const uldData = {
+  //             uldIdentifier: uldId,
+  //             locationCurrentName: location,
+  //             conditionId: condition,
+  //             isFound: false,
+  //             isAdditional: true,
+  //           }
+
+  //           this.addedUlds.push(uldData);
+  //           console.log("Yo: uldData", uldData);
+  //           console.log("Yo again: addedUlds", this.addedUlds);
+
+  //           this.uldAdded.emit(uldData);
+
+  //           this.uldForm.get('uldId')?.reset();
+  //           setTimeout(() => this.uldIdInput.nativeElement.focus(), 0);
+  //         } else {
+  //           // Handle error
+  //         }
+  //       },
+  //       error: (err) => {
+  //         console.error('Error adding ULD:', err);
+  //         this.isLoading = false;
+  //       },
+  //     // });
+  //   }
+  // }
+
   public addUld(inputElement?: HTMLInputElement): void {
     if (this.uldForm.valid) {
       this.isLoading = true;
+
       const uldId = this.uldForm.value.uldId.toUpperCase();
+      const location = this.uldForm.value.location;
+      const condition = this.uldForm.value.condition;
 
-      this.uldService.addUld(uldId).subscribe({
-        next: (response) => {
-          this.handleAddResponse(response);
+      // Simulate success (since no backend is involved)
+      const success = true;
 
-          // Reset only the ULD ID field
-          this.uldForm.get('uldId')?.reset();
+      // Reset form input
+      this.uldForm.get('uldId')?.reset();
+      setTimeout(() => this.uldIdInput.nativeElement.focus(), 0);
 
-          // ✅ Force focus after a small delay for change detection
-          setTimeout(() => {
-            this.uldIdInput.nativeElement.focus();
-          }, 0);
-        },
-        error: (err) => {
-          console.error('Error adding ULD:', err);
-          this.isLoading = false;
-        },
-      });
+      this.isLoading = false;
+
+      if (success) {
+        const uldData = {
+          uldIdentifier: uldId,
+          locationCurrentName: location,
+          conditionId: condition,
+          isFound: false,
+          isAdditional: true,
+          // Add more fields if needed
+        };
+
+        this.addedUlds.push(uldData);
+
+        console.log('Yo: uldData', uldData);
+        console.log('Yo again: addedUlds', this.addedUlds);
+
+        this.uldAdded.emit(uldData);
+
+        // Reset again just to be sure
+        this.uldForm.get('uldId')?.reset();
+        setTimeout(() => this.uldIdInput.nativeElement.focus(), 0);
+      } else {
+        console.warn('ULD add failed');
+        // You can show a modal or message if needed
+      }
     }
   }
+
 
   public focusUldInput(inputElement: HTMLInputElement) {
     setTimeout(() => inputElement.focus(), 0);

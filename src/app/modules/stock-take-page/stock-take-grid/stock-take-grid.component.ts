@@ -10,96 +10,42 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './stock-take-grid.component.css',
 })
 export class StockTakeGridComponent {
-  @Input() data: UldGroup[] = [];
-  @Output() conditionChanged = new EventEmitter<{
-    uldId: number;
-    newCondition: string;
-  }>();
-  @Output() foundStatusChanged = new EventEmitter<{
-    uldId: number;
-    isFound: boolean;
-  }>();
-  @Output() uldRemoved = new EventEmitter<number>();
+  // @Input() uldItems: any[] = [];
+  @Input() additionalUlds: any[] = [];
 
-  public expandedLocations: { [key: number]: boolean } = {};
-  public expandedTypes: { [key: number]: boolean } = {};
-  public expandedAdditionalUlds: { [key: number]: boolean } = {};
+  public accordionState: { [key: string]: boolean } = {
+    standard: true,
+    fna: true,
+    pag: true,
+    pmc: true,
+    'additional': true,
+    baggage: true,
+    akh: true,
+    'additional-baggage': true,
+  };
 
-  public toggleLocation(locationId: number): void {
-    this.expandedLocations[locationId] = !this.expandedLocations[locationId];
+  constructor() {}
+
+  /**
+   * Toggles the visibility of an accordion section.
+   * @param sectionId The unique identifier for the section to toggle.
+   */
+
+  public toggleAccordion(sectionId: string): void {
+    // Check if the key exists before toggling to prevent errors
+    if (this.accordionState.hasOwnProperty(sectionId)) {
+      this.accordionState[sectionId] = !this.accordionState[sectionId];
+    }
+    console.log("Let's see the data", this.additionalUlds);
   }
 
-  public toggleType(typeId: number): void {
-    this.expandedTypes[typeId] = !this.expandedTypes[typeId];
+  public get totalServiceable(): number {
+    return this.additionalUlds.filter((u) => u.conditionId === 'Serviceable')
+      .length;
   }
 
-  public onConditionChange(uldId: number, event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    this.conditionChanged.emit({
-      uldId,
-      newCondition: selectElement.value,
-    });
-    this.foundStatusChanged.emit({ uldId, isFound: true });
-  }
-
-  public onFoundStatusChange(uldId: number, event: Event): void {
-    const checkbox = event.target as HTMLInputElement;
-    this.foundStatusChanged.emit({
-      uldId,
-      isFound: checkbox.checked,
-    });
-  }
-
-  public onRemoveUld(uldId: number): void {
-    this.uldRemoved.emit(uldId);
-  }
-
-  public toggleAdditionalUlds(locationId: number): void {
-    this.expandedAdditionalUlds[locationId] =
-      !this.expandedAdditionalUlds[locationId];
-  }
-
-  public hasAdditionalUlds(locationGroup: UldGroup): boolean {
-    return locationGroup.uldTypes.some((typeGroup) =>
-      typeGroup.ulds.some((uld) => uld.isAdditional)
-    );
-  }
-
-  public countAdditionalUlds(locationGroup: UldGroup): number {
-    return locationGroup.uldTypes.reduce(
-      (count, typeGroup) =>
-        count + typeGroup.ulds.filter((uld) => uld.isAdditional).length,
-      0
-    );
-  }
-
-  public countServiceableAdditional(locationGroup: UldGroup): number {
-    return locationGroup.uldTypes.reduce(
-      (count, typeGroup) =>
-        count +
-        typeGroup.ulds.filter(
-          (uld) => uld.isAdditional && uld.condition === 'Serviceable'
-        ).length,
-      0
-    );
-  }
-
-  public countDamagedAdditional(locationGroup: UldGroup): number {
-    return locationGroup.uldTypes.reduce(
-      (count, typeGroup) =>
-        count +
-        typeGroup.ulds.filter(
-          (uld) => uld.isAdditional && uld.condition === 'Damaged'
-        ).length,
-      0
-    );
-  }
-
-  public getAdditionalUlds(locationGroup: UldGroup): UldListItem[] {
-    return locationGroup.uldTypes
-      .flatMap((typeGroup) =>
-        typeGroup.ulds.filter((uld) => uld.isAdditional)
-      )
-      .sort((a, b) => a.identifier.localeCompare(b.identifier));
+  public get totalDamaged(): number {
+    return this.additionalUlds.filter((u) => u.conditionId === 'Damaged')
+      .length;
   }
 }

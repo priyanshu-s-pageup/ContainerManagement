@@ -7,12 +7,12 @@ import { delay, map, Observable, of } from 'rxjs';
   providedIn: 'root',
 })
 export class UldService {
-  private apiUrl = 'http://localhost:3000'; // json-server URL
-  private currentLocation = 'XX-FRA-Standard'; // Default from image
+  private apiUrl = 'http://localhost:3000';
+  private currentLocation = 'XX-FRA-Standard';
 
   constructor(private http: HttpClient) {}
 
-  addUld(uldId: string): Observable<UldAddResponse> {
+  public addUld(uldId: string): Observable<UldAddResponse> {
     return this.http
       .get<Uld[]>(`${this.apiUrl}/items?uldIdentifier=${uldId}`)
       .pipe(
@@ -65,5 +65,9 @@ export class UldService {
 
   removeUld(uldId: string): Observable<boolean> {
     return of(true).pipe(delay(500)); // Simulate API call
+  }
+
+  addAdditionalUld(uld: any) {
+    return this.http.post('/items', uld); // Assuming `items` array is your resource for ULDs
   }
 }

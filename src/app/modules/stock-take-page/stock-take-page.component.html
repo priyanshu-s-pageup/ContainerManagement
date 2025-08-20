@@ -1,12 +1,14 @@
-<div>
-  <app-stock-take-info></app-stock-take-info>
-</div>
 
-<div>
-  <app-add-uld></app-add-uld>
-</div>
+<div class="content-class">
+  <div>
+    <app-stock-take-info></app-stock-take-info>
+  </div>
 
-<div>
-  <app-stock-take-grid></app-stock-take-grid>
-  <p>Helo</p>
+  <div>
+    <app-add-uld (uldAdded)="onUldAdded($event)"></app-add-uld>
+  </div>
+
+  <div>
+    <app-stock-take-grid [additionalUlds]="additionalUlds"></app-stock-take-grid>
+  </div>
 </div>

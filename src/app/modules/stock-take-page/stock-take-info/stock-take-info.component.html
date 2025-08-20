@@ -1,59 +1,57 @@
 <div class="stock-take-info-card">
-  <h3>Stock Take Information</h3>
-
   <form [formGroup]="infoForm" class="info-form">
+
+    <!-- location -->
     <div class="form-group">
       <label for="location">Location</label>
-      <select id="location" formControlName="location" class="form-control">
-        <option value="">Select Location</option>
+      <div id="location" class="form-control">
         <option *ngFor="let location of locations$ | async" [value]="location.id">
-          {{ location.locationName }} ({{ location.locationShortCode }})
+          {{ location.locationName }}
         </option>
-      </select>
-    </div>
-
-    <div class="filter-section">
-      <div class="form-group">
-        <label for="groupFilter">Group</label>
-        <select id="groupFilter" formControlName="groupFilter" class="form-control">
-          <option value="">All Groups</option>
-          <option *ngFor="let group of groups$ | async" [value]="group.uldGroupId">
-            {{ group.uldGroupShortName }}
-          </option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="uldTypeFilter">ULD Type</label>
-        <select id="uldTypeFilter" formControlName="uldTypeFilter" class="form-control">
-          <option value="">All Types</option>
-          <option *ngFor="let type of uldTypes$ | async" [value]="type.uldTypeId">
-            {{ type.uldTypeShortCode }}
-          </option>
-        </select>
       </div>
     </div>
 
-    <div class="info-section">
-      <div class="info-item">
-        <span class="info-label">Reference:</span>
-        <span class="info-value">{{ (stockTakeInfo$ | async)?.identifier }}</span>
-      </div>
-
-      <div class="info-item">
-        <span class="info-label">Status:</span>
-        <span class="info-value">{{ (stockTakeInfo$ | async)?.statusId }}</span>
-      </div>
-
-      <div class="info-item">
-        <span class="info-label">Start Date:</span>
-        <span class="info-value">{{ (stockTakeInfo$ | async)?.startDateLocal | date:'medium' }}</span>
-      </div>
-
-      <div class="info-item">
-        <span class="info-label">Company:</span>
-        <span class="info-value">{{ (stockTakeInfo$ | async)?.companyShortCode }}</span>
+    <!-- filter -->
+    <div class="form-group">
+      <label for="groupFilter">Filter</label>
+      <div id="filter" class="form-control">
+        <option>Group: LD Cont</option>
+        <option>ULD Type: All</option>
       </div>
     </div>
+
+    <!-- reference -->
+    <div class="form-group">
+      <label>Referene</label>
+      <div id="filter" class="form-control">
+        <option>Group: LD Cont</option>
+        <option>ULD Type: All</option>
+      </div>
+    </div>
+
+    <!-- status -->
+    <div class="form-group">
+      <label>Status</label>
+      <div id="status" class="form-control">
+        <option>{{ (stockTakeInfo$ | async)?.statusId }}</option>
+      </div>
+    </div>
+
+    <!-- start date -->
+    <div class="form-group">
+      <label>Start Date</label>
+      <div id="start-date" class="form-control">
+        <option>{{ (stockTakeInfo$ | async)?.startDateLocal | date:'dd MMM YYYY hh:mm' }}</option>
+      </div>
+    </div>
+
+    <!-- submission date (24 hours ahead) -->
+    <div class="form-group">
+      <label>Latest submission date</label>
+      <div id="filter" class="form-control">
+        <option>{{ getLatestSubmissionDate((stockTakeInfo$ | async)?.startDateLocal)| date:'dd MMM YYYY hh:mm' }}</option>
+      </div>
+    </div>
+
   </form>
 </div>

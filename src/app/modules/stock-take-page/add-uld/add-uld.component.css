@@ -1,16 +1,18 @@
 .add-uld-card {
   background: #ffffff;
+  margin: 2rem;
   border-radius: 16px;
-  padding: 15px 25px;
+  padding: 8px 25px;
   margin-bottom: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   display: flex;
+  max-width: 700px;
   justify-content: center;
 }
 
 .uld-form {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto; /* 3 inputs + button */
+  grid-template-columns: 1fr 1fr 1fr auto;
   align-items: flex-end;
   gap: 25px;
   max-width: 1000px;
@@ -24,16 +26,20 @@
   gap: 5px;
 }
 
+.form-group input:focus, select:focus {
+  border: none;
+  border-bottom: 2px solid orange;
+}
+
 .form-group label {
   font-size: 12px;
   font-weight: 600;
   color: #888;
 }
 
-/* Material-style underline input */
 .form-control {
   border: none;
-  border-bottom: 2px solid #ddd;
+  border-bottom: 2px solid orange;
   border-radius: 0;
   padding: 6px 2px;
   font-size: 15px;
@@ -44,7 +50,9 @@
 }
 
 .form-control:focus {
-  border-bottom-color: #ff7b00; /* Orange focus */
+  background: none;
+  border-bottom-color: #ff7b00;
+  /* border-bottom: 2px solid #ccc; */
 }
 
 .form-control.is-invalid {
@@ -56,12 +64,11 @@
   font-size: 11px;
 }
 
-/* Add button (floating orange circle) */
 .add-button {
   background-color: #ff7b00;
   color: white;
   border: none;
-  border-radius: 10%;
+  border-radius: 50%;
   width: 40px;
   height: 40px;
   cursor: pointer;
@@ -100,7 +107,6 @@
   to { transform: rotate(360deg); }
 }
 
-/* Responsive behavior */
 @media (max-width: 768px) {
   .uld-form {
     grid-template-columns: 1fr !important;

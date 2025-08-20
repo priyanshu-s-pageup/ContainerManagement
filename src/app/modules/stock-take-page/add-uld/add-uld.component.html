@@ -14,10 +14,7 @@
         (keyup.enter)="onKeyPress($event)"
         [class.is-invalid]="uldId?.invalid && (uldId?.dirty || uldId?.touched)"
       >
-      <div *ngIf="uldId?.invalid && (uldId?.dirty || uldId?.touched)" class="invalid-feedback">
-        <!-- <div *ngIf="uldId?.errors?.['required']">ULD ID is required</div>
-        <div *ngIf="uldId?.errors?.['pattern']">Invalid ULD format (e.g., AKH123456XX)</div> -->
-      </div>
+      <div *ngIf="uldId?.invalid && (uldId?.dirty || uldId?.touched)" class="invalid-feedback"></div>
     </div>
 
     <!-- Location -->
@@ -52,3 +49,5 @@
 
   </form>
 </div>
+
+
