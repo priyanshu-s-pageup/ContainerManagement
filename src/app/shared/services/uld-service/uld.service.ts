@@ -8,6 +8,7 @@ import { delay, map, Observable, of } from 'rxjs';
 })
 export class UldService {
   private apiUrl = 'http://localhost:3000';
+  private apiUrl2 = 'http://localhost:3001';
   private currentLocation = 'XX-FRA-Standard';
 
   constructor(private http: HttpClient) {}
@@ -63,11 +64,21 @@ export class UldService {
       );
   }
 
-  removeUld(uldId: string): Observable<boolean> {
+  public removeUld(uldId: string): Observable<boolean> {
     return of(true).pipe(delay(500)); // Simulate API call
   }
 
-  addAdditionalUld(uld: any) {
+  public addAdditionalUld(uld: any) {
     return this.http.post('/items', uld); // Assuming `items` array is your resource for ULDs
+  }
+
+  public getAllUlds(): Observable<Uld[]> {
+    return this.http.get<Uld[]>(`${this.apiUrl2}/stockTakeInfo`);
+  }
+
+  public getUldsByLocation(locationName: string): Observable<Uld[]> {
+    return this.http.get<Uld[]>(
+      `${this.apiUrl2}/stockTakeInfo?locationName=${locationName}`
+    );
   }
 }

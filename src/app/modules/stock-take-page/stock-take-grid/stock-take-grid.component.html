@@ -1,124 +1,91 @@
 <div class="container">
-
-    <!-- First Main Card -->
-    <div class="card">
-        <!-- Card Header -->
-        <div class="card-header" (click)="toggleAccordion('standard')">
-            <span class="chevron" [class.open]="accordionState['standard']"></span>
-            <span>LH-FRA-Standard | Total: 12 [SER 9][<span class="danger-text">DAM 3</span>]</span>
-        </div>
-
-        <!-- Card Content (collapsible) -->
-        <div class="card-content" *ngIf="accordionState['standard']">
-
-            <!-- FNA Section -->
-            <div class="section">
-                <div class="section-header" (click)="toggleAccordion('fna')">
-                    <span class="chevron" [class.open]="accordionState['fna']"></span>
-                    <span>FNA | Total: 2 [SER 1][<span class="danger-text">DAM 1</span>]</span>
-                </div>
-                <div class="section-content" *ngIf="accordionState['fna']">
-                    <div class="uld-item">
-                        <span class="uld-id">FNA00084DE</span>
-                        <span class="tag ser-tag">SER</span>
-                        <span class="tag dam-tag">DAM</span>
-                    </div>
-                    <div class="uld-item">
-                        <span class="uld-id">FNA00092DE</span>
-                        <input type="checkbox" checked>
-                        <span class="tag ser-tag">SER</span>
-                        <span class="tag disabled-tag">DAM</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PAG Section -->
-            <div class="section">
-                <div class="section-header" (click)="toggleAccordion('pag')">
-                    <span class="chevron" [class.open]="accordionState['pag']"></span>
-                    <span>PAG | Total: 1 [SER 1]</span>
-                </div>
-                <div class="section-content" *ngIf="accordionState['pag']">
-                    <div class="uld-item">
-                        <span class="uld-id">PAG2991787</span>
-                        <input type="checkbox" checked>
-                        <span class="tag ser-tag">SER</span>
-                        <span class="tag disabled-tag">DAM</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Additional sections would follow the same pattern... -->
-
-        </div>
+  <!-- Dynamic Cards for each location -->
+  <div class="card" *ngFor="let location of Object.keys(groupedData); let i = index">
+    <!-- Card Header -->
+    <div class="card-header" (click)="toggleAccordion('location-' + i)">
+      <span class="chevron" [class.open]="accordionState['location-' + i]"></span>
+      <span>
+        {{ location }} | Total: {{ locationCounts[location].total || 0 }}
+        [SER {{ locationCounts[location].serviceable || 0 }}]
+        [<span class="danger-text">DAM {{ locationCounts[location].damaged || 0 }}</span>]
+      </span>
     </div>
 
-    <!-- Second Main Card -->
-    <div class="card">
-        <div class="card-header" (click)="toggleAccordion('baggage')">
-            <span class="chevron" [class.open]="accordionState['baggage']"></span>
-            <span>LH-FRA-Baggage | Total: 4 [SER 2][<span class="danger-text">DAM 2</span>]</span>
+    <!-- Card Content (collapsible) -->
+    <div class="card-content" *ngIf="accordionState['location-' + i]">
+
+      <!-- Dynamic Sections for each ULD type -->
+      <div class="section" *ngFor="let uldType of Object.keys(groupedData[location]); let j = index">
+        <div class="section-header" (click)="toggleAccordion('type-' + i + '-' + j)">
+          <span class="chevron" [class.open]="accordionState['type-' + i + '-' + j]"></span>
+          <span>
+            {{ uldType }} | Total: {{ groupedData[location][uldType].length }}
+            [SER {{ getCounts(groupedData[location][uldType]).serviceable }}]
+            [<span class="danger-text" *ngIf="getCounts(groupedData[location][uldType]).damaged > 0">
+              DAM {{ getCounts(groupedData[location][uldType]).damaged }}
+            </span>]
+          </span>
         </div>
 
-        <div class="card-content" *ngIf="accordionState['baggage']">
-            <!-- AKH Section -->
-            <div class="section">
-                <div class="section-header" (click)="toggleAccordion('akh')">
-                    <span class="chevron" [class.open]="accordionState['akh']"></span>
-                    <span>AKH | Total: 2 [SER 1][<span class="danger-text">DAM 1</span>]</span>
-                </div>
-                <div class="section-content" *ngIf="accordionState['akh']">
-                    <div class="uld-item">
-                        <span class="uld-id">AKH12345XX</span>
-                        <input type="checkbox" checked>
-                        <span class="tag ser-tag">SER</span>
-                        <span class="tag disabled-tag">DAM</span>
-                    </div>
-                    <div class="uld-item">
-                        <span class="uld-id">AKH12222XX</span>
-                        <input type="checkbox">
-                        <span class="tag disabled-tag">SER</span>
-                        <span class="tag dam-tag">DAM</span>
-                    </div>
-                </div>
-            </div>
+        <div class="section-content" *ngIf="accordionState['type-' + i + '-' + j]">
+          <div class="uld-item" *ngFor="let uld of groupedData[location][uldType]">
+            <span class="uld-id">{{ uld.uldItemIdentifier }}</span>
+            <input type="checkbox" [checked]="uld.isFound || false">
 
-            <!-- Additional ULDs Section -->
-            <div class="section">
-              <div class="section-header" (click)="toggleAccordion('additional')">
-                <span class="chevron" [class.open]="accordionState['additional']"></span>
-                <span>
-                  Additional ULDs | Total: {{ additionalUlds.length }}
-                  [SER {{ totalServiceable}}]
-                  [<span class="danger-text">DAM {{ totalDamaged }}</span>]
-                </span>
-              </div>
+            <span class="tag"
+                  [ngClass]="{
+                    'ser-tag': uld.conditionId === 'Serviceable',
+                    'disabled-tag': uld.conditionId !== 'Serviceable'
+                  }">
+              SER
+            </span>
 
-              <div class="section-content" *ngIf="accordionState['additional']">
-                <div class="uld-item" *ngFor="let uld of additionalUlds">
-                  <span class="uld-id">{{ uld.uldIdentifier }}</span>
-                  <input type="checkbox" checked>
-
-                  <span class="tag"
-                        [ngClass]="{
-                          'ser-tag': uld.conditionId === 'Serviceable',
-                          'disabled-tag': uld.conditionId !== 'Serviceable'
-                        }">
-                    SER
-                  </span>
-
-                  <span class="tag"
-                        [ngClass]="{
-                          'dam-tag': uld.conditionId === 'Damaged',
-                          'disabled-tag': uld.conditionId !== 'Damaged'
-                        }">
-                    DAM
-                  </span>
-                </div>
-              </div>
-            </div>
-
+            <span class="tag"
+                  [ngClass]="{
+                    'dam-tag': uld.conditionId === 'Damaged',
+                    'disabled-tag': uld.conditionId !== 'Damaged'
+                  }">
+              DAM
+            </span>
+          </div>
         </div>
+      </div>
+
     </div>
+  </div>
 
+  <!-- Keep your additional ULDs section as is -->
+  <div class="card">
+    <!-- Additional ULDs Section -->
+    <div class="section">
+      <div class="section-header" (click)="toggleAccordion('additional')">
+        <span class="chevron" [class.open]="accordionState['additional']"></span>
+        <span>
+          Additional ULDs | Total: {{ additionalUlds.length }}
+          [SER {{ totalServiceable}}]
+          [<span class="danger-text">DAM {{ totalDamaged }}</span>]
+        </span>
+      </div>
+      <div class="section-content" *ngIf="accordionState['additional']">
+        <div class="uld-item" *ngFor="let uld of additionalUlds">
+          <span class="uld-id">{{ uld.uldIdentifier }}</span>
+          <input type="checkbox" checked>
+          <span class="tag"
+                [ngClass]="{
+                  'ser-tag': uld.conditionId === 'Serviceable',
+                  'disabled-tag': uld.conditionId !== 'Serviceable'
+                }">
+            SER
+          </span>
+          <span class="tag"
+                [ngClass]="{
+                  'dam-tag': uld.conditionId === 'Damaged',
+                  'disabled-tag': uld.conditionId !== 'Damaged'
+                }">
+            DAM
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
