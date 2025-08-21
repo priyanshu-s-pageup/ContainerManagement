@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { StockTakeService } from '../../../shared/services/stock-take-service/stock-take.service';
 import { CommonModule, formatDate } from '@angular/common';
+import { LocationOption } from '../../../shared/models/stock-take-info.model';
 
 @Component({
   selector: 'app-stock-take-info',
@@ -19,6 +20,15 @@ export class StockTakeInfoComponent implements OnInit {
   public locale = 'en-US';
 
   public infoForm!: FormGroup;
+
+  public locationSelected = new EventEmitter<string>();
+
+  @Output() locationsSelected = new EventEmitter<string[]>();
+
+  private locations: any[] = [];
+
+  // public selectedLocations: string[] = ['LH-FRA-Cargo', 'LH-FRA-Baggage'];
+  public selectedLocations: string[] = [];
 
   constructor(
     private stockTakeService: StockTakeService,
@@ -38,6 +48,13 @@ export class StockTakeInfoComponent implements OnInit {
       groupFilter: [''],
       uldTypeFilter: [''],
     });
+
+    const locationCtrl = this.infoForm.get('location');
+    if (locationCtrl) {
+      locationCtrl.valueChanges.subscribe((locationId) => {
+        this.locationSelected.emit(locationId);
+      });
+    }
 
     const groupFilterCtrl = this.infoForm.get('groupFilter');
     if (groupFilterCtrl) {
@@ -61,19 +78,22 @@ export class StockTakeInfoComponent implements OnInit {
       });
     }
 
-    // Set initial location
+    // Set initial location & emit it
     this.locations$.subscribe((locations) => {
+      this.locations = locations;
+
+      this.selectedLocations = locations.map(loc => loc.locationName)
+      this.locationsSelected.emit(this.selectedLocations);
+
       if (locations.length > 0) {
+        const initialLocation = locations[0].id;
         this.infoForm.patchValue({
-          location: locations[0].id,
+          location: initialLocation,
         });
       }
     });
   }
 
-  // public formatDate(dateString: string): string {
-  //   return new Date(dateString).toLocaleString();
-  // }
 
   public getLatestSubmissionDate(
     startDateLocal: string | Date | undefined | null

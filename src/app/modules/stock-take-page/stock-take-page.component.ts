@@ -30,4 +30,11 @@ export class StockTakePageComponent {
     // this.additionalUlds.push(uld);
     this.additionalUlds = [...this.additionalUlds, uld];
   }
+
+  public currentLocation: string[] = [];
+
+  public onLocationsSelected(locationId: string[]): void {
+    this.currentLocation = locationId;
+    console.log("Location selected:", locationId);
+  }
 }

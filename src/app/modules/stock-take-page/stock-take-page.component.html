@@ -1,7 +1,7 @@
 
 <div class="content-class">
   <div>
-    <app-stock-take-info></app-stock-take-info>
+    <app-stock-take-info (locationsSelected)="onLocationsSelected($event)"></app-stock-take-info>
   </div>
 
   <div>
@@ -9,6 +9,9 @@
   </div>
 
   <div>
-    <app-stock-take-grid [additionalUlds]="additionalUlds"></app-stock-take-grid>
+    <app-stock-take-grid
+    [additionalUlds]="additionalUlds"
+    [selectedLocation]="currentLocation">
+  </app-stock-take-grid>
   </div>
 </div>

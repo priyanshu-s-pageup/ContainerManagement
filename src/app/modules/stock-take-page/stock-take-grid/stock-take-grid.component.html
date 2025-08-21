@@ -1,6 +1,8 @@
 <div class="container">
+
   <!-- Dynamic Cards for each location -->
-  <div class="card" *ngFor="let location of Object.keys(groupedData); let i = index">
+  <div class="card" *ngFor="let location of getFilteredLocations(); let i = index">
+
     <!-- Card Header -->
     <div class="card-header" (click)="toggleAccordion('location-' + i)">
       <span class="chevron" [class.open]="accordionState['location-' + i]"></span>

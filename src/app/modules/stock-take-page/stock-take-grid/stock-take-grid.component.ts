@@ -1,9 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { UldGroup, UldListItem } from './models/stock-take-grid.model';
 import { MatIconModule } from '@angular/material/icon';
-import { Uld } from '../../../shared/models/uld.model';
 import { UldService } from '../../../shared/services/uld-service/uld.service';
 @Component({
   selector: 'app-stock-take-grid',
@@ -11,12 +9,12 @@ import { UldService } from '../../../shared/services/uld-service/uld.service';
   templateUrl: './stock-take-grid.component.html',
   styleUrl: './stock-take-grid.component.css',
 })
-export class StockTakeGridComponent {
+export class StockTakeGridComponent implements OnInit, OnChanges {
   // @Input() uldItems: any[] = [];
   @Input() additionalUlds: any[] = [];
 
-  public uldItems: any[] = [];
-  // public additionalUlds: any[] = [];
+  public uiUldItems: any[] = [];
+  public originalData: any[] = []; // backup of original data
   public groupedData: any = {};
 
   public accordionState: { [key: string]: boolean } = {
@@ -36,11 +34,25 @@ export class StockTakeGridComponent {
     this.loadUldData();
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['selectedLocation']) {
+      // The filtering will automatically update in the next render
+      // because getFilteredLocations() is called in the template
+      console.log('Selected location changed to:', this.selectedLocation);
+    }
+  }
+
   private loadUldData(): void {
     this.uldService.getAllUlds().subscribe({
       next: (data) => {
-        this.uldItems = data;
-        this.groupAndProcessData(data);
+        this.originalData = [...data];
+
+        this.uiUldItems = data.map((item) => ({
+          ...item,
+          isFound: false,
+          isSelected: false,
+        }));
+        this.groupAndProcessData(this.uiUldItems);
         this.initializeAccordionStates();
       },
       error: (error) => {
@@ -49,12 +61,69 @@ export class StockTakeGridComponent {
     });
   }
 
+  public toggleUldFoundStatus(uldItemIdentifier: string): void {
+    const uld = this.uiUldItems.find(
+      (item) => item.uldItemIdentifier === uldItemIdentifier
+    );
+    if (uld) {
+      uld.isFound = !uld.isFound;
+      // Re-group to reflect changes
+      this.groupAndProcessData(this.uiUldItems);
+    }
+  }
+
+  // Example method to filter by condition
+  public filterByCondition(condition: string): void {
+    if (condition === 'all') {
+      // Reset to all data
+      this.uiUldItems = this.originalData.map((item) => ({
+        ...item,
+        isFound: item.isFound || false, // Preserve existing UI state
+      }));
+    } else {
+      // Filter based on condition
+      this.uiUldItems = this.originalData
+        .filter((item) => item.conditionId === condition)
+        .map((item) => ({
+          ...item,
+          isFound: item.isFound || false,
+        }));
+    }
+    this.groupAndProcessData(this.uiUldItems);
+  }
+
+  // Example method to update condition in UI only
+  public updateUldCondition(
+    uldItemIdentifier: string,
+    newCondition: string
+  ): void {
+    const uld = this.uiUldItems.find(
+      (item) => item.uldItemIdentifier === uldItemIdentifier
+    );
+    if (uld) {
+      uld.conditionId = newCondition;
+      uld.conditionName = newCondition;
+      // Re-group to reflect changes
+      this.groupAndProcessData(this.uiUldItems);
+    }
+  }
+
+  // Reset UI data to original state
+  public resetToOriginal(): void {
+    this.uiUldItems = this.originalData.map((item) => ({
+      ...item,
+      isFound: false, // Reset UI-specific properties
+      isSelected: false,
+    }));
+    this.groupAndProcessData(this.uiUldItems);
+  }
+
   private initializeAccordionStates(): void {
     // Initialize accordion states for all locations
     Object.keys(this.groupedData).forEach((location, index) => {
       const locationKey = 'location-' + index;
       if (!this.accordionState.hasOwnProperty(locationKey)) {
-        this.accordionState[locationKey] = true; // Set to true if you want them expanded by default
+        this.accordionState[locationKey] = true; // collapse by default
       }
 
       // Initialize accordion states for all ULD types within each location
@@ -94,12 +163,13 @@ export class StockTakeGridComponent {
       {}
     );
 
-    // Then group by ULD type within each location with proper typing
+    // Then group by ULD type within each location
     this.groupedData = Object.keys(groupedByLocation).reduce(
       (acc: GroupedData, location) => {
         acc[location] = groupedByLocation[location].reduce(
           (typeAcc: TypeGroup, item: any) => {
             const type = item.uldTypeShortCode || 'Unknown';
+
             if (!typeAcc[type]) {
               typeAcc[type] = [];
             }
@@ -110,10 +180,10 @@ export class StockTakeGridComponent {
         );
         return acc;
       },
-      {} as GroupedData // Initialize with proper type
+      {} as GroupedData // for type-casting
     );
 
-    console.log('Grouped data:', this.groupedData);
+    // console.log('Grouped data:', this.groupedData);
 
     this.locationCounts = {};
     Object.keys(this.groupedData).forEach((location) => {
@@ -123,10 +193,10 @@ export class StockTakeGridComponent {
       this.locationCounts[location] = this.getCounts(allItemsInLocation);
     });
 
-    console.log('Location counts:', this.locationCounts);
+    // console.log('Location counts:', this.locationCounts);
   }
 
-  // Helper methods for counts
+  // for counts
   public getCounts(items: any[]): {
     total: number;
     serviceable: number;
@@ -140,18 +210,12 @@ export class StockTakeGridComponent {
     };
   }
 
-  /**
-   * Toggles the visibility of an accordion section.
-   * @param sectionId The unique identifier for the section to toggle.
-   */
-
   public toggleAccordion(sectionId: string): void {
-    // Check if the key exists before toggling to prevent errors
+    // Check if the key exists before toggling
     if (this.accordionState.hasOwnProperty(sectionId)) {
-      // this.accordionState[sectionId] = false;
       this.accordionState[sectionId] = !this.accordionState[sectionId];
     }
-    console.log("Let's see the data", this.additionalUlds);
+    // console.log("Let's see the data", this.additionalUlds);
   }
 
   public get totalServiceable(): number {
@@ -178,8 +242,21 @@ export class StockTakeGridComponent {
     return { total: 0, serviceable: 0, damaged: 0 };
   }
 
-  // Add this to your component class
   get Object() {
     return Object;
+  }
+
+  @Input() selectedLocation: string[] = [];
+  public filteredGroupedData: any = {};
+
+  public getFilteredLocations(): string[] {
+    if (!this.selectedLocation) {
+      return Object.keys(this.groupedData);
+    }
+
+    // Return only the location that matches selectedLocation
+    return Object.keys(this.groupedData).filter(
+      (location) => this.selectedLocation.includes(location)
+    );
   }
 }
