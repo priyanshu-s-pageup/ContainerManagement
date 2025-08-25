@@ -1,5 +1,13 @@
 
 <div class="content-class">
+  <div class="header-row" style="display:flex; justify-content:flex-end; margin-bottom: 12px; gap: 12px;">
+    <app-save-actions
+      (saveDraft)="onSaveDraft()"
+      (submit)="onSubmit()"
+      (print)="onPrint()"
+    ></app-save-actions>
+  </div>
+
   <div>
     <app-stock-take-info (locationsSelected)="onLocationsSelected($event)"></app-stock-take-info>
   </div>
@@ -11,7 +19,9 @@
   <div>
     <app-stock-take-grid
     [additionalUlds]="additionalUlds"
-    [selectedLocation]="currentLocation">
+    [selectedLocation]="currentLocation"
+    [newUldToAdd]="newUldToProcess"
+    (additionalUldsChanged)="onAdditionalUldsChanged($event)">
   </app-stock-take-grid>
   </div>
 </div>

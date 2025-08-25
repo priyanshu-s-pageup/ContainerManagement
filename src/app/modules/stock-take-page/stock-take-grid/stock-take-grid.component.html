@@ -2,7 +2,7 @@
   <!-- Dynamic Cards for each location -->
   <div
     class="card"
-    *ngFor="let location of groupedData | keyvalue; let i = index"
+    *ngFor="let location of getFilteredLocations(); let i = index"
   >
     <!-- Card Header -->
     <div class="card-header" (click)="toggleAccordion('location-' + i)">
@@ -11,10 +11,10 @@
         [class.open]="accordionState['location-' + i]"
       ></span>
       <span>
-        {{ location.key }} | Total: [SER
-        {{ locationCounts[location.key].serviceable || 0 }}] [<span
+        {{ location }} | Total: [SER
+        {{ locationCounts[location].serviceable || 0 }}] [<span
           class="danger-text"
-          >DAM {{ locationCounts[location.key].damaged || 0 }}</span
+          >DAM {{ locationCounts[location].damaged || 0 }}</span
         >]
       </span>
     </div>
@@ -23,7 +23,7 @@
     <div class="card-content" *ngIf="accordionState['location-' + i]">
       <div
         class="section"
-        *ngFor="let uldType of location.value | keyvalue; let j = index"
+        *ngFor="let uldType of Object.keys(groupedData[location]); let j = index"
       >
         <div
           class="section-header"
@@ -34,18 +34,18 @@
             [class.open]="accordionState['type-' + i + '-' + j]"
           ></span>
           <span>
-            {{ uldType.key }} | Total:
-            {{ groupedData[location.key][uldType.key].length }} [SER
-            {{ getCounts(groupedData[location.key][uldType.key]).serviceable }}]
+            {{ uldType }} | Total:
+            {{ groupedData[location][uldType].length }} [SER
+            {{ getCounts(groupedData[location][uldType]).serviceable }}]
             [<span
               class="danger-text"
               *ngIf="
-                getCounts(groupedData[location.key][uldType.key]).damaged > 0
+                getCounts(groupedData[location][uldType]).damaged > 0
               "
             >
               DAM
               {{
-                getCounts(groupedData[location.key][uldType.key]).damaged
+                getCounts(groupedData[location][uldType]).damaged
               }} </span
             >]
           </span>
@@ -55,12 +55,16 @@
           class="section-content"
           *ngIf="accordionState['type-' + i + '-' + j]"
         >
-          <div class="uld-item" *ngFor="let uld of uldType.value">
+          <div class="uld-item" *ngFor="let uld of groupedData[location][uldType]">
             <span class="uld-id">{{ uld.uldItemIdentifier }}</span>
-            <input type="checkbox" [(ngModel)]="uld.isFound" />
+            <input 
+              type="checkbox" 
+              [checked]="uld.isFound" 
+              (change)="toggleUldFoundStatus(uld.uldItemIdentifier)"
+            />
 
             <span
-              (click)="uld.conditionId = 'Serviceable'"
+              (click)="updateUldCondition(uld.uldItemIdentifier, 'Serviceable')"
               class="tag"
               [ngClass]="{
                 'ser-tag': uld.conditionId === 'Serviceable',
@@ -71,7 +75,7 @@
             </span>
 
             <span
-              (click)="uld.conditionId = 'Damaged'"
+              (click)="updateUldCondition(uld.uldItemIdentifier, 'Damaged')"
               class="tag"
               [ngClass]="{
                 'dam-tag': uld.conditionId === 'Damaged',
@@ -80,62 +84,20 @@
             >
               DAM
             </span>
+
+            <!-- Removal button for additional ULDs -->
+            <button
+              *ngIf="uld.isAdditional"
+              class="remove-btn"
+              type="button"
+              (click)="removeAdditionalUld(uld.uldItemIdentifier)"
+              title="Remove"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <!-- <div class="container">
-
-  <div class="card" *ngFor="let location of getFilteredLocations(); let i = index">
-
-    <div class="card-header" (click)="toggleAccordion('location-' + i)">
-      <span class="chevron" [class.open]="accordionState['location-' + i]"></span>
-      <span>
-        {{ location }} | Total: {{ locationCounts[location].total || 0 }}
-        [SER {{ locationCounts[location].serviceable || 0 }}]
-        [<span class="danger-text">DAM {{ locationCounts[location].damaged || 0 }}</span>]
-      </span>
-    </div>
-
-    <div class="card-content" *ngIf="accordionState['location-' + i]">
-
-      <div class="section" *ngFor="let uldType of Object.keys(groupedData[location]); let j = index">
-        <div class="section-header" (click)="toggleAccordion('type-' + i + '-' + j)">
-          <span class="chevron" [class.open]="accordionState['type-' + i + '-' + j]"></span>
-          <span>
-            {{ uldType }} | Total: {{ groupedData[location][uldType].length }}
-            [SER {{ getCounts(groupedData[location][uldType]).serviceable }}]
-            [<span class="danger-text" *ngIf="getCounts(groupedData[location][uldType]).damaged > 0">
-              DAM {{ getCounts(groupedData[location][uldType]).damaged }}
-            </span>]
-          </span>
-        </div>
-
-        <div class="section-content" *ngIf="accordionState['type-' + i + '-' + j]">
-          <div class="uld-item" *ngFor="let uld of groupedData[location][uldType]">
-            <span class="uld-id">{{ uld.uldItemIdentifier }}</span>
-            <input type="checkbox" [checked]="uld.isFound || false">
-
-            <span class="tag"
-                  [ngClass]="{
-                    'ser-tag': uld.conditionId === 'Serviceable',
-                    'disabled-tag': uld.conditionId !== 'Serviceable'
-                  }">
-              SER
-            </span>
-
-            <span class="tag"
-                  [ngClass]="{
-                    'dam-tag': uld.conditionId === 'Damaged',
-                    'disabled-tag': uld.conditionId !== 'Damaged'
-                  }">
-              DAM
-            </span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div> -->
 </div>

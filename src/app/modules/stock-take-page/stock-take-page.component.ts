@@ -3,17 +3,19 @@ import { Component } from '@angular/core';
 import { StockTakeInfoComponent } from "./stock-take-info/stock-take-info.component";
 import { AddUldComponent } from "./add-uld/add-uld.component";
 import { StockTakeGridComponent } from "./stock-take-grid/stock-take-grid.component";
+import { SaveActionsComponent } from "./save-actions/save-actions.component";
 
 
 @Component({
   selector: 'app-stock-take-page',
-  imports: [StockTakeInfoComponent, AddUldComponent, StockTakeGridComponent],
+  imports: [StockTakeInfoComponent, AddUldComponent, StockTakeGridComponent, SaveActionsComponent],
   templateUrl: './stock-take-page.component.html',
   styleUrl: './stock-take-page.component.css',
 })
 export class StockTakePageComponent {
   public uldItems: any[] = [];
   public additionalUlds: any[] = [];
+  public newUldToProcess: any = null; // For triggering the grid component logic
 
   constructor(private uldService: UldService) {}
 
@@ -27,8 +29,14 @@ export class StockTakePageComponent {
   }
 
   public onUldAdded(uld: any): void {
-    // this.additionalUlds.push(uld);
-    this.additionalUlds = [...this.additionalUlds, uld];
+    // Instead of directly adding to additionalUlds, we'll let the grid component handle it
+    // based on the three scenarios
+    this.newUldToProcess = uld;
+    
+    // Reset after a short delay to allow the grid component to process it
+    setTimeout(() => {
+      this.newUldToProcess = null;
+    }, 100);
   }
 
   public currentLocation: string[] = [];
@@ -36,5 +44,20 @@ export class StockTakePageComponent {
   public onLocationsSelected(locationId: string[]): void {
     this.currentLocation = locationId;
     console.log("Location selected:", locationId);
+  }
+
+  public onAdditionalUldsChanged(additionalUlds: any[]): void {
+    this.additionalUlds = additionalUlds;
+  }
+
+  // Actions from header buttons
+  public onSaveDraft(): void {
+    console.log('Save draft clicked');
+  }
+  public onSubmit(): void {
+    console.log('Submit clicked');
+  }
+  public onPrint(): void {
+    window.print();
   }
 }

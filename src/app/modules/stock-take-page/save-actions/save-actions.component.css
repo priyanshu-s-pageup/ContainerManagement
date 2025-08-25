@@ -1,0 +1,30 @@
+.save-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+}
+
+.action-btn mat-icon {
+  color: #f06423; /* orange tint similar to screenshot */
+  font-size: 22px;
+}
+
+.action-btn:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
