@@ -1,15 +1,14 @@
 
 <div class="content-class">
-  <div class="header-row" style="display:flex; justify-content:flex-end; margin-bottom: 12px; gap: 12px;">
+
+  <div class="header-container">
+    <app-stock-take-info (locationsSelected)="onLocationsSelected($event)"></app-stock-take-info>
     <app-save-actions
       (saveDraft)="onSaveDraft()"
       (submit)="onSubmit()"
       (print)="onPrint()"
     ></app-save-actions>
-  </div>
 
-  <div>
-    <app-stock-take-info (locationsSelected)="onLocationsSelected($event)"></app-stock-take-info>
   </div>
 
   <div>

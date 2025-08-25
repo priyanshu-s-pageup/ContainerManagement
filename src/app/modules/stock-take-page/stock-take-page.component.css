@@ -1,3 +1,19 @@
 .content-class {
   background: rgb(235, 235, 235);
 }
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* or center if you want vertical centering */
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+  /* gap: 12px; */
+}
+
+.header-container app-save-actions {
+  padding: 2.2rem;
+  margin-right: 2rem;
+  /* box-radius: 20px; */
+  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); */
+}
