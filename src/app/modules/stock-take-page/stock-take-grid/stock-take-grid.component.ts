@@ -10,12 +10,27 @@ import { UldService } from '../../../shared/services/uld-service/uld.service';
   styleUrl: './stock-take-grid.component.css',
 })
 export class StockTakeGridComponent implements OnInit, OnChanges {
-  // @Input() uldItems: any[] = [];
-  @Input() additionalUlds: any[] = [];
+  // @Input() additionalUlds: any[] = [];
+
+  // public additionalUlds: any[] = [
+  //   {uldIdentifier: 'AKE12654LH', locationCurrentName: 'LH-FRA-Baggage', conditionId: 'Damaged', isFound: false, isAdditional: true}
+  // ];
+
+  private _additionalUlds: any[] = [];
+  public groupedDataArray: any[] = [];
+
+  @Input() set additionalUlds(value: any[]) {
+    this._additionalUlds = value || [];
+    this.groupAndProcessData(this.uiUldItems);
+    this.initializeAccordionStates();
+  }
+  get additionalUlds() {
+    return this._additionalUlds;
+  }
 
   public uiUldItems: any[] = [];
   public originalData: any[] = []; // backup of original data
-  public groupedData: any = {};
+  public groupedData: Record<string, Record<string, any[]>> = {};
 
   public accordionState: { [key: string]: boolean } = {
     standard: true,
@@ -25,22 +40,35 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
     additional: true,
     baggage: true,
     akh: true,
-    'additional-baggage': true,
+    isAdditional: true,
   };
 
   constructor(private uldService: UldService) {}
 
   ngOnInit(): void {
     this.loadUldData();
+
+    setTimeout(() => {
+      console.log(this.getFilteredLocations());
+      console.log(this.groupedData);
+    }, 5000);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    // if (changes['additionalUlds']) {
+    //   console.log('Additional ULDs changed:', this.additionalUlds);
+    //   this.groupAndProcessData(this.uiUldItems);
+    //   this.initializeAccordionStates();
+    // }
+
     if (changes['selectedLocation']) {
-      // The filtering will automatically update in the next render
-      // because getFilteredLocations() is called in the template
       console.log('Selected location changed to:', this.selectedLocation);
     }
   }
+
+  // ngDoCheck(): void {
+  //   this.groupAndProcessData(this.uiUldItems);
+  // }
 
   private loadUldData(): void {
     this.uldService.getAllUlds().subscribe({
@@ -118,39 +146,59 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
     this.groupAndProcessData(this.uiUldItems);
   }
 
+  // private initializeAccordionStates(): void {
+  //   // Initialize accordion states for all locations
+  //   Object.keys(this.groupedData).forEach((location, index) => {
+  //     const locationKey = 'location-' + index;
+  //     if (!this.accordionState.hasOwnProperty(locationKey)) {
+  //       this.accordionState[locationKey] = true; // collapse by default
+  //     }
+
+  //     // Initialize accordion states for all ULD types within each location
+  //     Object.keys(this.groupedData[location]).forEach((uldType, typeIndex) => {
+  //       const typeKey = 'type-' + index + '-' + typeIndex;
+  //       if (!this.accordionState.hasOwnProperty(typeKey)) {
+  //         this.accordionState[typeKey] = true; // Set to true if you want them expanded by default
+  //       }
+  //     });
+  //   });
+  // }
+
   private initializeAccordionStates(): void {
     // Initialize accordion states for all locations
-    Object.keys(this.groupedData).forEach((location, index) => {
-      const locationKey = 'location-' + index;
+    Object.keys(this.groupedData).forEach((location, locationIndex) => {
+      const locationKey = 'location-' + locationIndex;
       if (!this.accordionState.hasOwnProperty(locationKey)) {
         this.accordionState[locationKey] = true; // collapse by default
       }
 
-      // Initialize accordion states for all ULD types within each location
+      // Initialize accordion states for all ULD types within each location (including AdditionalUlds)
       Object.keys(this.groupedData[location]).forEach((uldType, typeIndex) => {
-        const typeKey = 'type-' + index + '-' + typeIndex;
+        const typeKey = 'type-' + locationIndex + '-' + typeIndex;
         if (!this.accordionState.hasOwnProperty(typeKey)) {
           this.accordionState[typeKey] = true; // Set to true if you want them expanded by default
         }
       });
     });
+
+    // Also ensure the static 'additional' key exists (if you still want it)
+    if (!this.accordionState.hasOwnProperty('additional')) {
+      this.accordionState['additional'] = true;
+    }
   }
 
   private groupAndProcessData(data: any[]): void {
-    // Define proper types for the accumulators
     interface LocationGroup {
       [location: string]: any[];
     }
-
     interface TypeGroup {
       [uldType: string]: any[];
     }
-
     interface GroupedData {
       [location: string]: TypeGroup;
     }
 
-    // Group by location first with proper typing
+    // Step 1: Group by location
     const groupedByLocation: LocationGroup = data.reduce(
       (acc: LocationGroup, item) => {
         const location = item.locationName || 'Unknown';
@@ -163,12 +211,32 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
       {}
     );
 
-    // Then group by ULD type within each location
+    // Step 2: Inject additionalUlds into groupedByLocation
+    this.additionalUlds.forEach((addUld) => {
+      const location = addUld.locationCurrentName;
+      if (groupedByLocation[location]) {
+        if (!groupedByLocation[location]) {
+          groupedByLocation[location] = [];
+        }
+        // Tag it for identification
+        const formattedUld = {
+          ...addUld,
+          uldItemIdentifier: addUld.uldIdentifier,
+          isAdditional: true,
+        };
+        if (!groupedByLocation[location]) groupedByLocation[location] = [];
+        groupedByLocation[location].push(formattedUld);
+      }
+    });
+
+    // Step 3: Group by type within each location
     this.groupedData = Object.keys(groupedByLocation).reduce(
       (acc: GroupedData, location) => {
         acc[location] = groupedByLocation[location].reduce(
           (typeAcc: TypeGroup, item: any) => {
-            const type = item.uldTypeShortCode || 'Unknown';
+            const type = item.isAdditional
+              ? 'AdditionalUlds'
+              : item.uldTypeShortCode || 'Unknown';
 
             if (!typeAcc[type]) {
               typeAcc[type] = [];
@@ -176,15 +244,14 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
             typeAcc[type].push(item);
             return typeAcc;
           },
-          {} as TypeGroup // Initialize with proper type
+          {} as TypeGroup
         );
         return acc;
       },
-      {} as GroupedData // for type-casting
+      {} as GroupedData
     );
 
-    // console.log('Grouped data:', this.groupedData);
-
+    // Step 4: Update counts per location
     this.locationCounts = {};
     Object.keys(this.groupedData).forEach((location) => {
       const allItemsInLocation = Object.values(
@@ -193,8 +260,10 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
       this.locationCounts[location] = this.getCounts(allItemsInLocation);
     });
 
-    // console.log('Location counts:', this.locationCounts);
+    // this.updateGroupedDataArray();
   }
+
+
 
   // for counts
   public getCounts(items: any[]): {
@@ -255,8 +324,8 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
     }
 
     // Return only the location that matches selectedLocation
-    return Object.keys(this.groupedData).filter(
-      (location) => this.selectedLocation.includes(location)
+    return Object.keys(this.groupedData).filter((location) =>
+      this.selectedLocation.includes(location)
     );
   }
 }

@@ -35,7 +35,7 @@ export class AddUldComponent {
           Validators.pattern(/^[A-Z]{2,3}\d{5,6}[A-Z]{2}$/),
         ],
       ],
-      location: ['XX-FRA-Standard', Validators.required],
+      location: ['LH-FRA-Cargo', Validators.required],
       condition: ['Serviceable', Validators.required],
     });
   }
@@ -68,10 +68,9 @@ export class AddUldComponent {
           conditionId: condition,
           isFound: false,
           isAdditional: true,
-          // Add more fields if needed
         };
 
-        this.addedUlds.push(uldData);
+        this.addedUlds = [...this.addedUlds, uldData];
 
         console.log('Yo: uldData', uldData);
         console.log('Yo again: addedUlds', this.addedUlds);
