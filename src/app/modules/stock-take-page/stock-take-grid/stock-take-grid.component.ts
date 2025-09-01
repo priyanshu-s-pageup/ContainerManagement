@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { UldService } from '../../../shared/services/uld-service/uld.service';
 import { ConfirmationModalComponent } from '../../../shared/components/confirmation-modal/comfirmation-modal/confirmation-modal.component';
+import { ADDITIONAL_TYPE_KEY, CONDITION_DAMAGED, CONDITION_SERVICEABLE } from '../../../shared/constants/app.constants';
 
 /*
  Step 1: Data Loading and Preparation
@@ -177,7 +178,7 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
         acc[location] = groupedByLocation[location].reduce(
           (typeAcc: TypeGroup, item: any) => {
             const type = item.isAdditional
-              ? 'AdditionalUlds'
+              ? ADDITIONAL_TYPE_KEY
               : item.uldTypeShortCode || 'Unknown';
 
             if (!typeAcc[type]) {
@@ -730,9 +731,9 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
   } {
     return {
       total: items.length,
-      serviceable: items.filter((item) => item.conditionId === 'Serviceable')
+      serviceable: items.filter((item) => item.conditionId === CONDITION_SERVICEABLE)
         .length,
-      damaged: items.filter((item) => item.conditionId === 'Damaged').length,
+      damaged: items.filter((item) => item.conditionId === CONDITION_DAMAGED).length,
     };
   }
 
@@ -781,8 +782,8 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
   public getSortedTypes(location: string): string[] {
     const typeGroups = this.groupedData[location] || {};
     return Object.keys(typeGroups).sort((a, b) => {
-      const aIsAdditional = a === 'AdditionalUlds';
-      const bIsAdditional = b === 'AdditionalUlds';
+      const aIsAdditional = a === ADDITIONAL_TYPE_KEY;
+      const bIsAdditional = b === ADDITIONAL_TYPE_KEY;
       if (aIsAdditional && !bIsAdditional) return 1; // a after b
       if (!aIsAdditional && bIsAdditional) return -1; // a before b
       return a.localeCompare(b);
@@ -817,7 +818,7 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
       return {
         found: true,
         location: additionalUld.locationCurrentName,
-        uldType: 'AdditionalUlds',
+        uldType: ADDITIONAL_TYPE_KEY,
         isAdditional: true,
       };
     }

@@ -6,6 +6,7 @@ import { ConfirmationModalComponent } from '../../../shared/components/confirmat
 import { MatDialog } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
+import { CONDITION_SERVICEABLE, ENTER_KEY, ULD_ID_PATTERN } from '../../../shared/constants/app.constants';
 
 /*
  Step 1: Component IO, State, and Form Setup
@@ -73,11 +74,11 @@ export class AddUldComponent implements OnChanges {
         '',
         [
           Validators.required,
-          Validators.pattern(/^[A-Z]{2,3}\d{5,6}[A-Z]{2}$/),
+          Validators.pattern(ULD_ID_PATTERN),
         ],
       ],
       location: ['', Validators.required],
-      condition: ['Serviceable', Validators.required],
+      condition: [CONDITION_SERVICEABLE, Validators.required],
     });
   }
 
@@ -207,7 +208,7 @@ export class AddUldComponent implements OnChanges {
   // a. Submit form on Enter key
   public onKeyPress(event: Event): void {
     const keyboardEvent = event as KeyboardEvent;
-    if (keyboardEvent.key === 'Enter') {
+    if (keyboardEvent.key === ENTER_KEY) {
       this.addUld();
     }
   }

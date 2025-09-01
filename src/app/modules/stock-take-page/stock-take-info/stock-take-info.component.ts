@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angul
 import { Observable } from 'rxjs';
 import { StockTakeService } from '../../../shared/services/stock-take-service/stock-take.service';
 import { CommonModule, formatDate } from '@angular/common';
+import { DEFAULT_LOCALE } from '../../../shared/constants/app.constants';
 import { LocationOption } from '../../../shared/models/stock-take-info.model';
 
 /*
@@ -42,7 +43,7 @@ export class StockTakeInfoComponent implements OnInit {
   public uldTypes$!: Observable<any[]>;
 
   // b. Locale and reactive form
-  public locale = 'en-US';
+  public locale = DEFAULT_LOCALE;
 
   public infoForm!: FormGroup;
 

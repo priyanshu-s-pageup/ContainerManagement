@@ -4,13 +4,14 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 
 import { StockTakeInfo, LocationOption, UldFilter } from '../../models/stock-take-info.model';
+import { API_BASE_PRIMARY } from '../../constants/app.constants';
 
 @Injectable({
   providedIn: 'root',
 })
 
 export class StockTakeService {
-  private apiUrl = 'http://localhost:3000';
+  private apiUrl = API_BASE_PRIMARY;
   private stockTakeInfoSubject = new BehaviorSubject<StockTakeInfo | null>( null );
 
   constructor(private http: HttpClient) {}

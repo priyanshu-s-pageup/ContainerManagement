@@ -1,14 +1,20 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Uld, UldAddResponse } from '../../models/uld.model';
+import {
+  API_BASE_PRIMARY,
+  API_BASE_SECONDARY,
+  CONDITION_SERVICEABLE,
+  UNKNOWN_LOCATION_LABEL,
+} from '../../constants/app.constants';
 import { delay, map, Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UldService {
-  private apiUrl = 'http://localhost:3000';
-  private apiUrl2 = 'http://localhost:3001';
+  private apiUrl = API_BASE_PRIMARY;
+  private apiUrl2 = API_BASE_SECONDARY;
   private currentLocation = 'XX-FRA-Standard';
 
   constructor(private http: HttpClient) {}
@@ -21,7 +27,7 @@ export class UldService {
           if (existingUlds.length > 0) {
             const existingUld = existingUlds[0];
             const existingLocation =
-              existingUld.locationCurrentName || 'Unknown Location';
+              existingUld.locationCurrentName || UNKNOWN_LOCATION_LABEL;
 
             if (existingLocation === this.currentLocation) {
               return {
@@ -39,7 +45,7 @@ export class UldService {
                   ...existingUld,
                   uldIdentifier: uldId,
                   locationCurrentName: this.currentLocation,
-                  conditionId: existingUld.conditionId || 'Serviceable',
+                  conditionId: existingUld.conditionId || CONDITION_SERVICEABLE,
                   isFound: false,
                   originalLocation: existingLocation,
                 },
@@ -53,7 +59,7 @@ export class UldService {
               uld: {
                 uldIdentifier: uldId,
                 locationCurrentName: this.currentLocation,
-                conditionId: 'Serviceable',
+                conditionId: CONDITION_SERVICEABLE,
                 isFound: false,
                 isAdditional: true,
               } as Uld,
@@ -69,7 +75,7 @@ export class UldService {
   }
 
   public addAdditionalUld(uld: any) {
-    return this.http.post('/items', uld); // Assuming `items` array is your resource for ULDs
+    return this.http.post(`${this.apiUrl}/items`, uld); // Assuming `items` array is your resource for ULDs
   }
 
   public getAllUlds(): Observable<Uld[]> {
