@@ -6,6 +6,13 @@
   >
     <!-- Card Header -->
     <div class="card-header" (click)="toggleAccordion('location-' + i)">
+      <input
+        type="checkbox"
+        [checked]="isAllFoundInLocation(location)"
+        (click)="$event.stopPropagation()"
+        (change)="onLocationCheckboxChange(location, $any($event.target).checked)"
+        style="margin-right: 8px;"
+      />
       <span
         class="chevron"
         [class.open]="accordionState['location-' + i]"
@@ -23,12 +30,19 @@
     <div class="card-content" *ngIf="accordionState['location-' + i]">
       <div
         class="section"
-        *ngFor="let uldType of Object.keys(groupedData[location]); let j = index"
+        *ngFor="let uldType of getSortedTypes(location); let j = index"
       >
         <div
           class="section-header"
           (click)="toggleAccordion('type-' + i + '-' + j)"
         >
+          <input
+            type="checkbox"
+            [checked]="isAllFoundInType(location, uldType)"
+            (click)="$event.stopPropagation()"
+            (change)="onTypeCheckboxChange(location, uldType, $any($event.target).checked)"
+            style="margin-right: 8px;"
+          />
           <span
             class="chevron"
             [class.open]="accordionState['type-' + i + '-' + j]"
@@ -37,17 +51,10 @@
             {{ uldType }} | Total:
             {{ groupedData[location][uldType].length }} [SER
             {{ getCounts(groupedData[location][uldType]).serviceable }}]
-            [<span
-              class="danger-text"
-              *ngIf="
-                getCounts(groupedData[location][uldType]).damaged > 0
-              "
-            >
+            [<span class="danger-text">
               DAM
-              {{
-                getCounts(groupedData[location][uldType]).damaged
-              }} </span
-            >]
+              {{ getCounts(groupedData[location][uldType]).damaged }}
+            </span>]
           </span>
         </div>
 
@@ -57,9 +64,9 @@
         >
           <div class="uld-item" *ngFor="let uld of groupedData[location][uldType]">
             <span class="uld-id">{{ uld.uldItemIdentifier }}</span>
-            <input 
-              type="checkbox" 
-              [checked]="uld.isFound" 
+            <input
+              type="checkbox"
+              [checked]="uld.isFound"
               (change)="toggleUldFoundStatus(uld.uldItemIdentifier)"
             />
 

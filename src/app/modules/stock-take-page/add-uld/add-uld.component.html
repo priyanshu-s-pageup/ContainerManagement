@@ -21,8 +21,7 @@
     <div class="form-group">
       <label for="location">Location</label>
       <select id="location" formControlName="location" class="form-control">
-        <option value="LH-FRA-Cargo">LH-FRA-Cargo</option>
-        <option value="LH-FRA-Baggage">LH-FRA-Baggage</option>
+        <option *ngFor="let loc of getLocationOptions()" [value]="loc">{{ loc }}</option>
       </select>
     </div>
 

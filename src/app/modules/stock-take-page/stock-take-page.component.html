@@ -12,7 +12,7 @@
   </div>
 
   <div>
-    <app-add-uld (uldAdded)="onUldAdded($event)"></app-add-uld>
+    <app-add-uld [selectedLocations]="currentLocation" (uldAdded)="onUldAdded($event)"></app-add-uld>
   </div>
 
   <div>

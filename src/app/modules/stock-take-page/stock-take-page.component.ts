@@ -15,25 +15,24 @@ import { SaveActionsComponent } from "./save-actions/save-actions.component";
 export class StockTakePageComponent {
   public uldItems: any[] = [];
   public additionalUlds: any[] = [];
-  public newUldToProcess: any = null; // For triggering the grid component logic
+  public newUldToProcess: any = null;
 
   constructor(private uldService: UldService) {}
 
   public handleUldAdded(newUld: any) {
     // POST new ULD to json-server
     this.uldService.addAdditionalUld(newUld).subscribe((addedUld) => {
-      // After successful add, update local data and pass to grid
+      // After successful add, update local data and pass to grid UI
       this.uldItems.push(addedUld);
-      this.uldItems = [...this.uldItems]; // Trigger change detection if needed
+      this.uldItems = [...this.uldItems]; // Triggers change detection
     });
   }
 
   public onUldAdded(uld: any): void {
-    // Instead of directly adding to additionalUlds, we'll let the grid component handle it
     // based on the three scenarios
     this.newUldToProcess = uld;
-    
-    // Reset after a short delay to allow the grid component to process it
+
+    // Resetting after a short delay
     setTimeout(() => {
       this.newUldToProcess = null;
     }, 100);

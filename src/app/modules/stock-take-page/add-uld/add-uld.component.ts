@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UldService } from '../../../shared/services/uld-service/uld.service';
 import { UldAddResponse } from '../../../shared/models/uld.model';
@@ -7,20 +7,61 @@ import { MatDialog } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 
+/*
+ Step 1: Component IO, State, and Form Setup
+
+ - a. Outputs & Events
+ - b. Reactive Form initialization
+ - c. Local UI state variables
+ - d. ViewChild refs
+ - e. Inputs from parent
+
+ Step 2: Lifecycle and Derived Data
+
+ - a. ngOnChanges to react to location filter changes
+ - b. getLocationOptions helper
+
+ Step 3: Add ULD Flow (User Action)
+
+ - a. addUld main handler (validates, normalizes, emits)
+ - b. focusUldInput utility
+
+ Step 4: Service Response Handling & Dialogs
+
+ - a. handleAddResponse (success & exists cases)
+ - b. showLocationChangeWarning confirmation dialog
+
+ Step 5: Keyboard Handling
+
+ - a. onKeyPress to submit on Enter
+
+*/
+
 @Component({
   selector: 'app-add-uld',
   imports: [CommonModule, FormsModule, ReactiveFormsModule, MatIcon],
   templateUrl: './add-uld.component.html',
   styleUrl: './add-uld.component.css',
 })
-export class AddUldComponent {
+export class AddUldComponent implements OnChanges {
+  //  Step 1: Component IO, State, and Form Setup
+
+  // a. Outputs & Events
   @Output() uldAdded = new EventEmitter<any>();
+
+  // b. Reactive Form initialization
   public uldForm: FormGroup;
+
+  // c. Local UI state variables
   public isLoading = false;
 
   public addedUlds: any[] = []; // any type, just for a moment...
 
+  // d. ViewChild refs
   @ViewChild('uldIdInput') uldIdInput!: ElementRef<HTMLInputElement>;
+
+  // e. Inputs from parent
+  @Input() selectedLocations: string[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -35,7 +76,7 @@ export class AddUldComponent {
           Validators.pattern(/^[A-Z]{2,3}\d{5,6}[A-Z]{2}$/),
         ],
       ],
-      location: ['LH-FRA-Cargo', Validators.required],
+      location: ['', Validators.required],
       condition: ['Serviceable', Validators.required],
     });
   }
@@ -44,6 +85,29 @@ export class AddUldComponent {
     return this.uldForm.get('uldId');
   }
 
+  //  Step 2: Lifecycle and Derived Data
+
+  // a. React to changes in selectable locations
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['selectedLocations']) {
+      const locations = this.getLocationOptions();
+      const current = this.uldForm.get('location')?.value;
+      if (locations.length === 0) {
+        this.uldForm.get('location')?.setValue('');
+      } else if (!locations.includes(current)) {
+        this.uldForm.get('location')?.setValue(locations[0]);
+      }
+    }
+  }
+
+  // b. Compute sorted location options
+  public getLocationOptions(): string[] {
+    return [...(this.selectedLocations || [])].sort((a, b) => a.localeCompare(b));
+  }
+
+  //  Step 3: Add ULD Flow (User Action)
+
+  // a. Main handler to add ULD from form
   public addUld(inputElement?: HTMLInputElement): void {
     if (this.uldForm.valid) {
       this.isLoading = true;
@@ -88,10 +152,14 @@ export class AddUldComponent {
   }
 
 
+  // b. Focus utility for the ULD input
   public focusUldInput(inputElement: HTMLInputElement) {
     setTimeout(() => inputElement.focus(), 0);
   }
 
+  //  Step 4: Service Response Handling & Dialogs
+
+  // a. Process service response and show exists modal if needed
   private handleAddResponse(response: UldAddResponse): void {
     this.isLoading = false;
 
@@ -116,6 +184,7 @@ export class AddUldComponent {
     }
   }
 
+  // b. Confirm dialog when moving from an original location
   private showLocationChangeWarning(originalLocation: string, uld: any): void {
     const dialogRef = this.dialog.open(ConfirmationModalComponent, {
       data: {
@@ -133,6 +202,9 @@ export class AddUldComponent {
     });
   }
 
+  //  Step 5: Keyboard Handling
+
+  // a. Submit form on Enter key
   public onKeyPress(event: Event): void {
     const keyboardEvent = event as KeyboardEvent;
     if (keyboardEvent.key === 'Enter') {

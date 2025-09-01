@@ -27,6 +27,16 @@
               "locationPortShortCode": "FRA",
               "locationPortId": 3675,
               "id": 3
+          } ,
+          {
+              "locationName": "LH-FRA-Express",
+              "locationShortName": "LH-Express",
+              "locationShortCode": "LHFRAExpress",
+              "locationCompanyShortCode": "LH",
+              "locationCompanyId": 2,
+              "locationPortShortCode": "FRA",
+              "locationPortId": 3675,
+              "id": 4
           }
       ],
       "uldFilters": [

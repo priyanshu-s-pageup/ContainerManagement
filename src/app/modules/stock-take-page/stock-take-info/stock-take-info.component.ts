@@ -5,6 +5,27 @@ import { StockTakeService } from '../../../shared/services/stock-take-service/st
 import { CommonModule, formatDate } from '@angular/common';
 import { LocationOption } from '../../../shared/models/stock-take-info.model';
 
+/*
+ Step 1: Component IO and State
+
+ - a. Observables for data streams
+ - b. Locale and reactive form
+ - c. Outputs and selected locations
+
+ Step 2: Initialization and Subscriptions
+
+ - a. Trigger data load
+ - b. Wire data streams
+ - c. Build reactive form
+ - d. Subscribe to form controls to emit and update filters
+ - e. Initialize locations, selectedLocations, and default selection
+
+ Step 3: Helpers
+
+ - a. getLatestSubmissionDate: derive latest allowed submission date
+
+*/
+
 @Component({
   selector: 'app-stock-take-info',
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
@@ -12,15 +33,20 @@ import { LocationOption } from '../../../shared/models/stock-take-info.model';
   styleUrl: './stock-take-info.component.css',
 })
 export class StockTakeInfoComponent implements OnInit {
+  //  Step 1: Component IO and State
+
+  // a. Observables for data streams
   public stockTakeInfo$!: Observable<any>;
   public locations$!: Observable<any[]>;
   public groups$!: Observable<any[]>;
   public uldTypes$!: Observable<any[]>;
 
+  // b. Locale and reactive form
   public locale = 'en-US';
 
   public infoForm!: FormGroup;
 
+  // c. Outputs and selected locations
   public locationSelected = new EventEmitter<string>();
 
   @Output() locationsSelected = new EventEmitter<string[]>();
@@ -35,20 +61,25 @@ export class StockTakeInfoComponent implements OnInit {
     private fb: FormBuilder
   ) {}
 
+  //  Step 2: Initialization and Subscriptions
   ngOnInit(): void {
+    // a. Trigger data load
     this.stockTakeService.loadStockTakeInfo().subscribe();
 
+    // b. Wire data streams
     this.stockTakeInfo$ = this.stockTakeService.getStockTakeInfo();
     this.locations$ = this.stockTakeService.getLocations();
     this.groups$ = this.stockTakeService.getGroups();
     this.uldTypes$ = this.stockTakeService.getUldTypes();
 
+    // c. Build reactive form
     this.infoForm = this.fb.group({
       location: [''],
       groupFilter: [''],
       uldTypeFilter: [''],
     });
 
+    // d. Subscribe to form controls to emit and update filters
     const locationCtrl = this.infoForm.get('location');
     if (locationCtrl) {
       locationCtrl.valueChanges.subscribe((locationId) => {
@@ -78,6 +109,7 @@ export class StockTakeInfoComponent implements OnInit {
       });
     }
 
+    // e. Initialize locations, selectedLocations, and default selection
     // Set initial location & emit it
     this.locations$.subscribe((locations) => {
       this.locations = locations;
@@ -94,7 +126,8 @@ export class StockTakeInfoComponent implements OnInit {
     });
   }
 
-
+  //  Step 3: Helpers
+  // a. Derive the latest allowed submission date from a start date
   public getLatestSubmissionDate(
     startDateLocal: string | Date | undefined | null
   ): string {

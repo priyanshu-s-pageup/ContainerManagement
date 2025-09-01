@@ -1,41 +1,89 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { UldService } from '../../../shared/services/uld-service/uld.service';
 import { ConfirmationModalComponent } from '../../../shared/components/confirmation-modal/comfirmation-modal/confirmation-modal.component';
+
+/*
+ Step 1: Data Loading and Preparation
+
+ - a. ngOnInit & loadUldData
+ - b. additionalUlds (Input Setter)
+ - c. groupAndProcessData
+ - d. initializeAccordionStates
+
+ Step 2: User Interaction and State Updates
+
+- A. Toggling Found Status
+  - a. toggleUldFoundStatus
+  - b. onLocationCheckboxChange
+  - c. onTypeCheckboxChange
+  - d. isAllFoundInLocation
+  - e. isAllFoundInType
+
+- B. Updating ULD Condition
+  - a. updateUldCondition
+
+- C. UI State Management
+  - a. toggleAccordion
+  - b. resetToOriginal
+  - c. regroupAndInit
+
+ Step 3: Handling ULD Movements and Additions
+
+ - a. newUldToAdd (Input Setter) & `handleUldAddition
+ - b. handleNewUldAddition
+ - c. handleSameLocationUld
+ - d. handleDifferentLocationUld
+ - e. removeAdditionalUld
+ - f. emitAdditionalUldsChange
+
+ Step 4. Helpers and Utilities
+
+ - a. set status for ULD found
+ - b. computes count
+ - c. computes location counts
+ - d. filters location on selectedLocation Input
+ - e. reinitialize accordion states when filtering changes
+ - f. sorts ULD types
+ - g. finds ULD in current UI
+ - h. sorts additional ULDs
+ - i. A Debug method
+
+ */
+
 @Component({
   selector: 'app-stock-take-grid',
-  imports: [CommonModule, FormsModule, MatIconModule],
+  imports: [CommonModule, MatIconModule],
   templateUrl: './stock-take-grid.component.html',
   styleUrl: './stock-take-grid.component.css',
 })
 export class StockTakeGridComponent implements OnInit, OnChanges {
-  // @Input() additionalUlds: any[] = [];
-
-  // public additionalUlds: any[] = [
-  //   {uldIdentifier: 'AKE12654LH', locationCurrentName: 'LH-FRA-Baggage', conditionId: 'Damaged', isFound: false, isAdditional: true}
-  // ];
-
-  private _additionalUlds: any[] = [];
-  public groupedDataArray: any[] = [];
+  //  Step 1: Data Loading and Preparation
 
   @Input() set additionalUlds(value: any[]) {
     this._additionalUlds = value || [];
-    // Only process if we have ULD items loaded
     if (this.uiUldItems.length > 0) {
       this.groupAndProcessData(this.uiUldItems);
       this.initializeAccordionStates();
     }
   }
-  get additionalUlds() {
-    return this._additionalUlds;
+
+  @Input() set newUldToAdd(value: any) {
+    if (value) {
+      this.handleUldAddition(value);
+    }
   }
 
+  @Input() selectedLocation: string[] = [];
+
+  @Output() additionalUldsChanged = new EventEmitter<any[]>();
+
+  private _additionalUlds: any[] = [];
   public uiUldItems: any[] = [];
-  public originalData: any[] = []; // backup of original data
-  public removedUlds: any[] = []; // track ULDs that were removed from their original location
+  public originalData: any[] = [];
+  public removedUlds: any[] = [];
   public groupedData: Record<string, Record<string, any[]>> = {};
 
   public accordionState: { [key: string]: boolean } = {
@@ -49,37 +97,23 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
     isAdditional: true,
   };
 
-  constructor(
-    private uldService: UldService,
-    private dialog: MatDialog
-  ) {}
+  constructor(private uldService: UldService, private dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.loadUldData();
-
-    setTimeout(() => {
-      console.log(this.getFilteredLocations());
-      console.log(this.groupedData);
-    }, 5000);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // if (changes['additionalUlds']) {
-    //   console.log('Additional ULDs changed:', this.additionalUlds);
-    //   this.groupAndProcessData(this.uiUldItems);
-    //   this.initializeAccordionStates();
-    // }
-
     if (changes['selectedLocation']) {
-      console.log('Selected location changed to:', this.selectedLocation);
       this.reinitializeAccordionStatesForFiltered();
     }
   }
 
-  // ngDoCheck(): void {
-  //   this.groupAndProcessData(this.uiUldItems);
-  // }
+  get additionalUlds() {
+    return this._additionalUlds;
+  }
 
+  // a. Load ULD data
   private loadUldData(): void {
     this.uldService.getAllUlds().subscribe({
       next: (data) => {
@@ -99,136 +133,7 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
     });
   }
 
-  public toggleUldFoundStatus(uldItemIdentifier: string): void {
-    // First try to find in uiUldItems (regular ULDs)
-    let uld = this.uiUldItems.find(
-      (item) => item.uldItemIdentifier === uldItemIdentifier
-    );
-    
-    if (uld) {
-      uld.isFound = !uld.isFound;
-      // Re-group to reflect changes
-      this.groupAndProcessData(this.uiUldItems);
-      return;
-    }
-
-    // If not found in uiUldItems, check additional ULDs
-    const additionalUld = this.additionalUlds.find(
-      (item) => item.uldIdentifier === uldItemIdentifier
-    );
-    
-    if (additionalUld) {
-      additionalUld.isFound = !additionalUld.isFound;
-      // Re-group to reflect changes
-      this.groupAndProcessData(this.uiUldItems);
-    }
-  }
-
-  // Example method to filter by condition
-  public filterByCondition(condition: string): void {
-    if (condition === 'all') {
-      // Reset to all data
-      this.uiUldItems = this.originalData.map((item) => ({
-        ...item,
-        isFound: item.isFound || false, // Preserve existing UI state
-      }));
-    } else {
-      // Filter based on condition
-      this.uiUldItems = this.originalData
-        .filter((item) => item.conditionId === condition)
-        .map((item) => ({
-          ...item,
-          isFound: item.isFound || false,
-        }));
-    }
-    this.groupAndProcessData(this.uiUldItems);
-  }
-
-  // Example method to update condition in UI only
-  public updateUldCondition(
-    uldItemIdentifier: string,
-    newCondition: string
-  ): void {
-    // First try to find in uiUldItems (regular ULDs)
-    let uld = this.uiUldItems.find(
-      (item) => item.uldItemIdentifier === uldItemIdentifier
-    );
-    
-    if (uld) {
-      uld.conditionId = newCondition;
-      uld.conditionName = newCondition;
-      // Re-group to reflect changes
-      this.groupAndProcessData(this.uiUldItems);
-      return;
-    }
-
-    // If not found in uiUldItems, check additional ULDs
-    const additionalUld = this.additionalUlds.find(
-      (item) => item.uldIdentifier === uldItemIdentifier
-    );
-    
-    if (additionalUld) {
-      additionalUld.conditionId = newCondition;
-      additionalUld.conditionName = newCondition;
-      // Re-group to reflect changes
-      this.groupAndProcessData(this.uiUldItems);
-    }
-  }
-
-  // Reset UI data to original state
-  public resetToOriginal(): void {
-    this.uiUldItems = this.originalData.map((item) => ({
-      ...item,
-      isFound: false, // Reset UI-specific properties
-      isSelected: false,
-    }));
-    this.removedUlds = []; // Clear removed ULDs
-    this.additionalUlds = []; // Clear additional ULDs
-    this.groupAndProcessData(this.uiUldItems);
-    this.emitAdditionalUldsChange();
-  }
-
-  // private initializeAccordionStates(): void {
-  //   // Initialize accordion states for all locations
-  //   Object.keys(this.groupedData).forEach((location, index) => {
-  //     const locationKey = 'location-' + index;
-  //     if (!this.accordionState.hasOwnProperty(locationKey)) {
-  //       this.accordionState[locationKey] = true; // collapse by default
-  //     }
-
-  //     // Initialize accordion states for all ULD types within each location
-  //     Object.keys(this.groupedData[location]).forEach((uldType, typeIndex) => {
-  //       const typeKey = 'type-' + index + '-' + typeIndex;
-  //       if (!this.accordionState.hasOwnProperty(typeKey)) {
-  //         this.accordionState[typeKey] = true; // Set to true if you want them expanded by default
-  //       }
-  //     });
-  //   });
-  // }
-
-  private initializeAccordionStates(): void {
-    // Initialize accordion states for all locations
-    Object.keys(this.groupedData).forEach((location, locationIndex) => {
-      const locationKey = 'location-' + locationIndex;
-      if (!this.accordionState.hasOwnProperty(locationKey)) {
-        this.accordionState[locationKey] = true; // collapse by default
-      }
-
-      // Initialize accordion states for all ULD types within each location (including AdditionalUlds)
-      Object.keys(this.groupedData[location]).forEach((uldType, typeIndex) => {
-        const typeKey = 'type-' + locationIndex + '-' + typeIndex;
-        if (!this.accordionState.hasOwnProperty(typeKey)) {
-          this.accordionState[typeKey] = true; // Set to true if you want them expanded by default
-        }
-      });
-    });
-
-    // Also ensure the static 'additional' key exists (if you still want it)
-    if (!this.accordionState.hasOwnProperty('additional')) {
-      this.accordionState['additional'] = true;
-    }
-  }
-
+  // b. Group and process data
   private groupAndProcessData(data: any[]): void {
     interface LocationGroup {
       [location: string]: any[];
@@ -240,7 +145,6 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
       [location: string]: TypeGroup;
     }
 
-    // Step 1: Group by location
     const groupedByLocation: LocationGroup = data.reduce(
       (acc: LocationGroup, item) => {
         const location = item.locationName || 'Unknown';
@@ -253,14 +157,12 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
       {}
     );
 
-    // Step 2: Inject additionalUlds into groupedByLocation
     this.additionalUlds.forEach((addUld) => {
       const location = addUld.locationCurrentName;
       if (location) {
         if (!groupedByLocation[location]) {
           groupedByLocation[location] = [];
         }
-        // Tag it for identification
         const formattedUld = {
           ...addUld,
           uldItemIdentifier: addUld.uldIdentifier,
@@ -270,7 +172,6 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
       }
     });
 
-    // Step 3: Group by type within each location
     this.groupedData = Object.keys(groupedByLocation).reduce(
       (acc: GroupedData, location) => {
         acc[location] = groupedByLocation[location].reduce(
@@ -292,7 +193,20 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
       {} as GroupedData
     );
 
-    // Step 4: Update counts per location
+    // Sort ULD arrays within each type by identifier
+    Object.keys(this.groupedData).forEach((location) => {
+      const typeGroups = this.groupedData[location];
+      Object.keys(typeGroups).forEach((typeKey) => {
+        typeGroups[typeKey] = [...typeGroups[typeKey]].sort(
+          (a: any, b: any) => {
+            const aId = (a.uldItemIdentifier || '').toString();
+            const bId = (b.uldItemIdentifier || '').toString();
+            return aId.localeCompare(bId);
+          }
+        );
+      });
+    });
+
     this.locationCounts = {};
     Object.keys(this.groupedData).forEach((location) => {
       const allItemsInLocation = Object.values(
@@ -300,168 +214,190 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
       ).flat();
       this.locationCounts[location] = this.getCounts(allItemsInLocation);
     });
-
-    // this.updateGroupedDataArray();
   }
 
-
-
-  // for counts
-  public getCounts(items: any[]): {
-    total: number;
-    serviceable: number;
-    damaged: number;
-  } {
-    return {
-      total: items.length,
-      serviceable: items.filter((item) => item.conditionId === 'Serviceable')
-        .length,
-      damaged: items.filter((item) => item.conditionId === 'Damaged').length,
-    };
-  }
-
-  public toggleAccordion(sectionId: string): void {
-    // Check if the key exists before toggling
-    if (this.accordionState.hasOwnProperty(sectionId)) {
-      this.accordionState[sectionId] = !this.accordionState[sectionId];
-    }
-    // console.log("Let's see the data", this.additionalUlds);
-  }
-
-  public get totalServiceable(): number {
-    return this.additionalUlds.filter((u) => u.conditionId === 'Serviceable')
-      .length;
-  }
-
-  public get totalDamaged(): number {
-    return this.additionalUlds.filter((u) => u.conditionId === 'Damaged')
-      .length;
-  }
-
-  public locationCounts: {
-    [location: string]: { total: number; serviceable: number; damaged: number };
-  } = {};
-
-  public getTypeCounts(
-    location: string,
-    uldType: string
-  ): { total: number; serviceable: number; damaged: number } {
-    if (this.groupedData[location] && this.groupedData[location][uldType]) {
-      return this.getCounts(this.groupedData[location][uldType]);
-    }
-    return { total: 0, serviceable: 0, damaged: 0 };
-  }
-
-  get Object() {
-    return Object;
-  }
-
-  @Input() selectedLocation: string[] = [];
-  public filteredGroupedData: any = {};
-
-  public getFilteredLocations(): string[] {
-    if (!this.selectedLocation || this.selectedLocation.length === 0) {
-      return Object.keys(this.groupedData);
-    }
-
-    // Return only the locations that match selectedLocation
-    return Object.keys(this.groupedData).filter((location) =>
-      this.selectedLocation.includes(location)
-    );
-  }
-
-  // Method to reinitialize accordion states for filtered locations
-  private reinitializeAccordionStatesForFiltered(): void {
-    const filteredLocations = this.getFilteredLocations();
-    
-    filteredLocations.forEach((location, locationIndex) => {
+  // c. Initialize accordion states
+  private initializeAccordionStates(): void {
+    Object.keys(this.groupedData).forEach((location, locationIndex) => {
       const locationKey = 'location-' + locationIndex;
       if (!this.accordionState.hasOwnProperty(locationKey)) {
-        this.accordionState[locationKey] = true; // collapse by default
+        this.accordionState[locationKey] = true;
       }
 
-      // Initialize accordion states for all ULD types within each filtered location
-      if (this.groupedData[location]) {
-        Object.keys(this.groupedData[location]).forEach((uldType, typeIndex) => {
-          const typeKey = 'type-' + locationIndex + '-' + typeIndex;
-          if (!this.accordionState.hasOwnProperty(typeKey)) {
-            this.accordionState[typeKey] = true; // Set to true if you want them expanded by default
-          }
-        });
-      }
+      Object.keys(this.groupedData[location]).forEach((uldType, typeIndex) => {
+        const typeKey = 'type-' + locationIndex + '-' + typeIndex;
+        if (!this.accordionState.hasOwnProperty(typeKey)) {
+          this.accordionState[typeKey] = true;
+        }
+      });
     });
+
+    if (!this.accordionState.hasOwnProperty('additional')) {
+      this.accordionState['additional'] = true;
+    }
   }
 
-  // Method to check if a ULD exists in the current data
-  private findUldInData(uldIdentifier: string): { found: boolean; location?: string; uldType?: string; isAdditional?: boolean } {
-    console.log('Searching for ULD:', uldIdentifier);
-    console.log('Regular ULDs:', this.uiUldItems.length);
-    console.log('Additional ULDs:', this.additionalUlds.length);
-    
-    // Check in regular ULDs
-    const regularUld = this.uiUldItems.find(item => item.uldItemIdentifier === uldIdentifier);
-    if (regularUld) {
-      console.log('Found in regular ULDs:', regularUld);
-      return {
-        found: true,
-        location: regularUld.locationName,
-        uldType: regularUld.uldTypeShortCode,
-        isAdditional: false
-      };
+  //  Step 2: User Interaction and State Updates
+
+  // [Section 2.a]: Toggling Found Status
+
+  // a. Toggle found flag
+  public toggleUldFoundStatus(uldItemIdentifier: string): void {
+    let uld = this.uiUldItems.find(
+      (item) => item.uldItemIdentifier === uldItemIdentifier
+    );
+
+    if (uld) {
+      uld.isFound = !uld.isFound;
+      this.regroupAndInit();
+      return;
     }
 
-    // Check in additional ULDs
-    const additionalUld = this.additionalUlds.find(item => item.uldIdentifier === uldIdentifier);
+    const additionalUld = this.additionalUlds.find(
+      (item) => item.uldIdentifier === uldItemIdentifier
+    );
+
     if (additionalUld) {
-      console.log('Found in additional ULDs:', additionalUld);
-      return {
-        found: true,
-        location: additionalUld.locationCurrentName,
-        uldType: 'AdditionalUlds',
-        isAdditional: true
-      };
+      additionalUld.isFound = !additionalUld.isFound;
+      this.regroupAndInit();
+    }
+  }
+
+  // b. Checkbox logic
+  public onLocationCheckboxChange(location: string, checked: boolean): void {
+    const typeGroups = this.groupedData[location];
+    if (!typeGroups) return;
+    const identifiers = Object.values(typeGroups)
+      .flat()
+      .map((u: any) => u.uldItemIdentifier);
+    identifiers.forEach((id: string) => this.setUldFoundStatus(id, checked));
+    this.regroupAndInit();
+  }
+
+  // c. Set found for all ULDs in a type
+  public onTypeCheckboxChange(
+    location: string,
+    uldType: string,
+    checked: boolean
+  ): void {
+    const items = (this.groupedData[location] || {})[uldType] || [];
+    items.forEach((u: any) =>
+      this.setUldFoundStatus(u.uldItemIdentifier, checked)
+    );
+    this.regroupAndInit();
+  }
+
+  // d. [Helper]: Check if all ULDs found in a location
+  public isAllFoundInLocation(location: string): boolean {
+    const typeGroups = this.groupedData[location];
+    if (!typeGroups) return false;
+    const all = Object.values(typeGroups).flat();
+    return all.length > 0 && all.every((u: any) => !!u.isFound);
+  }
+
+  // e. [Helper]: Check if all ULDs found in a type
+  public isAllFoundInType(location: string, uldType: string): boolean {
+    const items = (this.groupedData[location] || {})[uldType] || [];
+    return items.length > 0 && items.every((u: any) => !!u.isFound);
+  }
+
+  // [Section 2.b]: Updating ULD Condition
+
+  // a. Toggles ULD condition-status
+  public updateUldCondition(
+    uldItemIdentifier: string,
+    newCondition: string
+  ): void {
+    let uld = this.uiUldItems.find(
+      (item) => item.uldItemIdentifier === uldItemIdentifier
+    );
+
+    if (uld) {
+      uld.conditionId = newCondition;
+      uld.conditionName = newCondition;
+      uld.isFound = true;
+      this.regroupAndInit();
+      return;
     }
 
-    console.log('ULD not found in any data');
-    return { found: false };
+    const additionalUld = this.additionalUlds.find(
+      (item) => item.uldIdentifier === uldItemIdentifier
+    );
+
+    if (additionalUld) {
+      additionalUld.conditionId = newCondition;
+      additionalUld.conditionName = newCondition;
+      additionalUld.isFound = true; // mark as found
+      this.regroupAndInit();
+    }
   }
 
-  // Helper: keep additional ULDs in alphabetical order
-  private sortAdditionalUlds(): void {
-    this.additionalUlds = [...this.additionalUlds].sort((a: any, b: any) => {
-      const aId = (a.uldIdentifier || '').toString();
-      const bId = (b.uldIdentifier || '').toString();
-      return aId.localeCompare(bId);
-    });
+  // [Section 2.c]: UI State Management
+
+  // a. Toggle accordion sections
+  public toggleAccordion(sectionId: string): void {
+    if (!this.accordionState.hasOwnProperty(sectionId)) {
+      this.accordionState[sectionId] = true;
+      return;
+    }
+    this.accordionState[sectionId] = !this.accordionState[sectionId];
   }
 
-  // Method to handle ULD addition with the three scenarios
+  // b. Reset to original state
+  public resetToOriginal(): void {
+    this.uiUldItems = this.originalData.map((item) => ({
+      ...item,
+      isFound: false,
+    }));
+    this.removedUlds = [];
+    this.additionalUlds = [];
+    this.groupAndProcessData(this.uiUldItems);
+    this.emitAdditionalUldsChange();
+  }
+
+  // c. Re-group and re-initialize accordion states
+  private regroupAndInit(): void {
+    this.groupAndProcessData(this.uiUldItems);
+    this.initializeAccordionStates();
+  }
+
+  //  Step 3: Handling ULD Movements and Additions
+
+  // a. Accept new ULD to add
   public handleUldAddition(newUld: any): void {
-    console.log('Handling ULD addition:', newUld);
     const uldIdentifier = newUld.uldIdentifier;
     const newLocation = newUld.locationCurrentName;
-    
-    const existingUld = this.findUldInData(uldIdentifier);
-    console.log('Existing ULD found:', existingUld);
 
-    // Special case: ULD currently in additionalUlds (moved) and being added back to its original location
+    const existingUld = this.findUldInData(uldIdentifier);
+
+    // special case: ULD currently in additionalUlds (moved) and being added back to its original location
     if (existingUld.found && existingUld.isAdditional) {
-      const additionalEntry = this.additionalUlds.find((u) => u.uldIdentifier === uldIdentifier);
-      if (additionalEntry && additionalEntry.originalLocation && additionalEntry.originalLocation === newLocation) {
+      const additionalEntry = this.additionalUlds.find(
+        (u) => u.uldIdentifier === uldIdentifier
+      );
+      if (
+        additionalEntry &&
+        additionalEntry.originalLocation &&
+        additionalEntry.originalLocation === newLocation
+      ) {
         const dialogRef = this.dialog.open(ConfirmationModalComponent, {
           data: {
             title: 'Confirm Move Back',
             message: `Are you sure you want to move the ULD back to its initial location ${additionalEntry.originalLocation}?`,
             confirmText: 'Yes, Move Back',
-            cancelText: 'Cancel'
-          }
+            cancelText: 'Cancel',
+          },
         });
 
         dialogRef.afterClosed().subscribe((confirmed) => {
           if (confirmed) {
-            // Restore to original location and update found state + condition
+            // Restore to original location and update found state
             this.removeAdditionalUld(uldIdentifier);
-            const restored = this.uiUldItems.find((u) => u.uldItemIdentifier === uldIdentifier && u.locationName === newLocation);
+            const restored = this.uiUldItems.find(
+              (u) =>
+                u.uldItemIdentifier === uldIdentifier &&
+                u.locationName === newLocation
+            );
             if (restored) {
               restored.isFound = true;
               if (newUld.conditionId) restored.conditionId = newUld.conditionId;
@@ -472,85 +408,102 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
         return;
       }
     }
-    
+
     if (!existingUld.found) {
-      // Scenario 1: ULD not present anywhere - add to additional ULDs and mark as found
-      console.log('Scenario 1: New ULD - adding to additional ULDs');
+      // Case 1: ULD not present anywhere
       this.handleNewUldAddition(newUld);
     } else if (existingUld.location === newLocation) {
-      // Scenario 2: ULD exists in same location - show modal and mark as found
-      console.log('Scenario 2: Same location - showing modal');
+      // Case 2: ULD exists in same location
       this.handleSameLocationUld(existingUld, uldIdentifier, newUld);
     } else {
-      // Scenario 3: ULD exists in different location
-      console.log('Scenario 3: Different location - moving ULD');
+      // Case 3: ULD exists in different location
 
-      // Determine original isFound state
+      // check original isFound state
       let originalIsFound = false;
       if (existingUld.isAdditional) {
-        const add = this.additionalUlds.find((u) => u.uldIdentifier === uldIdentifier);
+        const add = this.additionalUlds.find(
+          (u) => u.uldIdentifier === uldIdentifier
+        );
         originalIsFound = !!(add && add.isFound);
       } else {
-        const reg = this.uiUldItems.find((u) => u.uldItemIdentifier === uldIdentifier);
+        const reg = this.uiUldItems.find(
+          (u) => u.uldItemIdentifier === uldIdentifier
+        );
         originalIsFound = !!(reg && reg.isFound);
       }
 
-      this.handleDifferentLocationUld(existingUld, newUld, uldIdentifier, originalIsFound);
+      this.handleDifferentLocationUld(
+        existingUld,
+        newUld,
+        uldIdentifier,
+        originalIsFound
+      );
     }
   }
 
-  // Scenario 1: Handle new ULD addition
+  // b. Add new ULD to additional list
   private handleNewUldAddition(newUld: any): void {
     // Add to additional ULDs with found status
     const uldWithFoundStatus = {
       ...newUld,
-      isFound: true
+      isFound: true,
     };
 
     // If already exists in additionalUlds, update instead of duplicating
-    const existingIdx = this.additionalUlds.findIndex(u => u.uldIdentifier === uldWithFoundStatus.uldIdentifier);
+    const existingIdx = this.additionalUlds.findIndex(
+      (u) => u.uldIdentifier === uldWithFoundStatus.uldIdentifier
+    );
     if (existingIdx !== -1) {
       this.additionalUlds[existingIdx] = {
         ...this.additionalUlds[existingIdx],
-        ...uldWithFoundStatus
+        ...uldWithFoundStatus,
       };
     } else {
       this.additionalUlds = [...this.additionalUlds, uldWithFoundStatus];
     }
 
     this.sortAdditionalUlds();
-    this.groupAndProcessData(this.uiUldItems);
+    this.regroupAndInit();
     this.emitAdditionalUldsChange();
-
-    console.log('New/Updated ULD in additional ULDs:', uldWithFoundStatus);
   }
 
-  // Scenario 2: Handle ULD in same location
-  private handleSameLocationUld(existingUld: any, uldIdentifier: string, newUld: any): void {
+  // c. Handle ULD found in same location
+  private handleSameLocationUld(
+    existingUld: any,
+    uldIdentifier: string,
+    newUld: any
+  ): void {
     const dialogRef = this.dialog.open(ConfirmationModalComponent, {
       data: {
         title: 'ULD Already Found',
-        message: 'The ULD was already found in the location. It will be marked as found.',
+        message:
+          'The ULD was already found in the location. It will be marked as found.',
         confirmText: 'OK',
-        cancelText: null // No cancel button for this scenario
-      }
+        cancelText: null, // No cancel button for this scenario
+      },
     });
 
     dialogRef.afterClosed().subscribe(() => {
       // Mark the existing ULD as found and update condition
       if (existingUld.isAdditional) {
         // Update the existing additional ULD with new data and mark as found
-        const additionalUldIndex = this.additionalUlds.findIndex(item => item.uldIdentifier === uldIdentifier);
+        const additionalUldIndex = this.additionalUlds.findIndex(
+          (item) => item.uldIdentifier === uldIdentifier
+        );
         if (additionalUldIndex !== -1) {
           this.additionalUlds[additionalUldIndex] = {
             ...this.additionalUlds[additionalUldIndex],
             ...newUld,
             isFound: true,
-            conditionId: newUld.conditionId || this.additionalUlds[additionalUldIndex].conditionId
+            conditionId:
+              newUld.conditionId ||
+              this.additionalUlds[additionalUldIndex].conditionId,
           };
         }
       } else {
-        const regularUld = this.uiUldItems.find(item => item.uldItemIdentifier === uldIdentifier);
+        const regularUld = this.uiUldItems.find(
+          (item) => item.uldItemIdentifier === uldIdentifier
+        );
         if (regularUld) {
           regularUld.isFound = true;
           if (newUld.conditionId) {
@@ -560,30 +513,48 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
       }
 
       this.sortAdditionalUlds();
-      this.groupAndProcessData(this.uiUldItems);
+      this.regroupAndInit();
       this.emitAdditionalUldsChange();
-      console.log('ULD marked as found in same location and condition updated:', uldIdentifier);
+      console.log(
+        'ULD marked as found in same location and condition updated:',
+        uldIdentifier
+      );
     });
   }
 
-  // Scenario 3: Handle ULD in different location
-  private handleDifferentLocationUld(existingUld: any, newUld: any, uldIdentifier: string, originalIsFound: boolean): void {
+  // d. Handle ULD found in different location
+  private handleDifferentLocationUld(
+    existingUld: any,
+    newUld: any,
+    uldIdentifier: string,
+    originalIsFound: boolean
+  ): void {
     const moveNow = () => {
       // Remove from old location
       let originalLocation: string | undefined = undefined;
       let originalFoundState: boolean | undefined = undefined;
 
       if (existingUld.isAdditional) {
-        console.log('Removing additional ULD from old location:', uldIdentifier);
-        const prev = this.additionalUlds.find(item => item.uldIdentifier === uldIdentifier);
+        const prev = this.additionalUlds.find(
+          (item) => item.uldIdentifier === uldIdentifier
+        );
         if (prev) {
-          originalLocation = prev.locationCurrentName;
-          originalFoundState = prev.isFound;
+          // Preserve the earliest known original location across multiple moves
+          originalLocation = prev.originalLocation || prev.locationCurrentName;
+          // Preserve the earliest known found state if available
+          originalFoundState =
+            typeof prev.originalIsFound === 'boolean'
+              ? prev.originalIsFound
+              : prev.isFound;
         }
-        this.additionalUlds = this.additionalUlds.filter(item => item.uldIdentifier !== uldIdentifier);
+        this.additionalUlds = this.additionalUlds.filter(
+          (item) => item.uldIdentifier !== uldIdentifier
+        );
       } else {
         // For regular ULDs, remove them from the UI data to prevent them from showing
-        const regularUldIndex = this.uiUldItems.findIndex(item => item.uldItemIdentifier === uldIdentifier);
+        const regularUldIndex = this.uiUldItems.findIndex(
+          (item) => item.uldItemIdentifier === uldIdentifier
+        );
         if (regularUldIndex !== -1) {
           // Store the removed ULD for potential restoration
           const removedUld = this.uiUldItems[regularUldIndex];
@@ -592,9 +563,7 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
           this.removedUlds.push(removedUld);
           // Remove the ULD from uiUldItems so it doesn't appear in the grid
           this.uiUldItems.splice(regularUldIndex, 1);
-          console.log('Removed regular ULD from old location:', uldIdentifier, 'Total removed ULDs:', this.removedUlds.length);
         } else {
-          console.log('ULD not found in uiUldItems for removal:', uldIdentifier);
         }
       }
 
@@ -603,26 +572,26 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
         ...newUld,
         isFound: true,
         originalLocation: originalLocation,
-        originalIsFound: originalFoundState
+        originalIsFound: originalFoundState,
       } as any;
 
       // If already exists in additionalUlds, update instead of duplicating
-      const idx = this.additionalUlds.findIndex(u => u.uldIdentifier === uldWithFoundStatus.uldIdentifier);
+      const idx = this.additionalUlds.findIndex(
+        (u) => u.uldIdentifier === uldWithFoundStatus.uldIdentifier
+      );
       if (idx !== -1) {
         this.additionalUlds[idx] = {
           ...this.additionalUlds[idx],
-          ...uldWithFoundStatus
+          ...uldWithFoundStatus,
         };
       } else {
         this.additionalUlds = [...this.additionalUlds, uldWithFoundStatus];
       }
 
       this.sortAdditionalUlds();
-      this.groupAndProcessData(this.uiUldItems);
+      this.regroupAndInit();
       this.emitAdditionalUldsChange();
 
-      console.log('ULD moved from', existingUld.location, 'to', newUld.locationCurrentName);
-      console.log('Additional ULDs count after move:', this.additionalUlds.length);
       this.debugCurrentState();
     };
 
@@ -632,8 +601,8 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
           title: 'Confirm Move',
           message: `Are you sure you want to move the ULD? It was already marked as found in the location ${existingUld.location}`,
           confirmText: 'Yes, Move',
-          cancelText: 'Cancel'
-        }
+          cancelText: 'Cancel',
+        },
       });
 
       dialogRef.afterClosed().subscribe((confirmed) => {
@@ -647,67 +616,224 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
     }
   }
 
-  // Remove button handler for additional ULDs
+  // e. Remove ULD from additional list
   public removeAdditionalUld(uldIdentifier: string): void {
     // Find in additional list
-    const toRemove = this.additionalUlds.find(u => u.uldIdentifier === uldIdentifier);
+    const toRemove = this.additionalUlds.find(
+      (u) => u.uldIdentifier === uldIdentifier
+    );
     if (!toRemove) {
       return;
     }
 
-    // If this ULD came from a different location earlier (scenario 3), restore it
-    const cameFromDifferentLocation = !!toRemove.originalLocation;
-    if (cameFromDifferentLocation) {
-      // Try to locate the stored removed ULD (has full original object)
-      const removedIdx = this.removedUlds.findIndex(u => u.uldItemIdentifier === uldIdentifier);
-      if (removedIdx !== -1) {
-        const restored = { ...this.removedUlds[removedIdx] };
-        // Restore original found state if we tracked it
-        if (typeof toRemove.originalIsFound === 'boolean') {
-          restored.isFound = toRemove.originalIsFound;
+    const initialLocation = toRemove.originalLocation;
+    const shouldPromptReturn = !!initialLocation;
+
+    const performRemoval = () => {
+      // If this ULD came from a different location earlier (scenario 3), restore it
+      const cameFromDifferentLocation = !!toRemove.originalLocation;
+      if (cameFromDifferentLocation) {
+        // Try to locate the stored removed ULD (has full original object)
+        const removedIdx = this.removedUlds.findIndex(
+          (u) => u.uldItemIdentifier === uldIdentifier
+        );
+        if (removedIdx !== -1) {
+          const restored = { ...this.removedUlds[removedIdx] };
+          // Restore original found state if we tracked it
+          if (typeof toRemove.originalIsFound === 'boolean') {
+            restored.isFound = toRemove.originalIsFound;
+          }
+          // Put back into the regular UI items
+          this.uiUldItems = [...this.uiUldItems, restored];
+          // Remove from the removed cache
+          this.removedUlds.splice(removedIdx, 1);
+        } else {
+          // Fallback: create a minimal restored record if not cached
+          const fallbackRestored = {
+            uldItemIdentifier: uldIdentifier,
+            locationName: toRemove.originalLocation,
+            conditionId: toRemove.conditionId || 'Serviceable',
+            isFound:
+              typeof toRemove.originalIsFound === 'boolean'
+                ? toRemove.originalIsFound
+                : false,
+            uldTypeShortCode: toRemove.uldTypeShortCode || 'Unknown',
+          } as any;
+          this.uiUldItems = [...this.uiUldItems, fallbackRestored];
         }
-        // Put back into the regular UI items
-        this.uiUldItems = [...this.uiUldItems, restored];
-        // Remove from the removed cache
-        this.removedUlds.splice(removedIdx, 1);
-      } else {
-        // Fallback: create a minimal restored record if not cached
-        const fallbackRestored = {
-          uldItemIdentifier: uldIdentifier,
-          locationName: toRemove.originalLocation,
-          conditionId: toRemove.conditionId || 'Serviceable',
-          isFound: typeof toRemove.originalIsFound === 'boolean' ? toRemove.originalIsFound : false,
-          uldTypeShortCode: toRemove.uldTypeShortCode || 'Unknown'
-        } as any;
-        this.uiUldItems = [...this.uiUldItems, fallbackRestored];
       }
+
+      // Finally remove from additional list
+      this.additionalUlds = this.additionalUlds.filter(
+        (u) => u.uldIdentifier !== uldIdentifier
+      );
+
+      this.sortAdditionalUlds();
+      // Recompute groups and notify
+      this.regroupAndInit();
+      this.emitAdditionalUldsChange();
+    };
+
+    if (shouldPromptReturn) {
+      const dialogRef = this.dialog.open(ConfirmationModalComponent, {
+        data: {
+          title: 'Confirm Move Back',
+          message: `Do you want to move the ULD back to its initial location ${initialLocation}?`,
+          confirmText: 'Yes, Move Back',
+          cancelText: 'Cancel',
+        },
+      });
+
+      dialogRef.afterClosed().subscribe((confirmed) => {
+        if (confirmed) {
+          performRemoval();
+        }
+      });
+    } else {
+      // No initial location tracked; remove without prompt
+      performRemoval();
     }
-
-    // Finally remove from additional list (no warning)
-    this.additionalUlds = this.additionalUlds.filter(u => u.uldIdentifier !== uldIdentifier);
-
-    this.sortAdditionalUlds();
-    // Recompute groups and notify
-    this.groupAndProcessData(this.uiUldItems);
-    this.emitAdditionalUldsChange();
   }
 
-  // Method to be called from parent component when ULD is added
-  @Input() set newUldToAdd(value: any) {
-    if (value) {
-      this.handleUldAddition(value);
-    }
-  }
-
-  // Output to notify parent of additional ULDs changes
-  @Output() additionalUldsChanged = new EventEmitter<any[]>();
-
-  // Method to emit additional ULDs changes
+  // f. Notify parent about additional ULDs changes
   private emitAdditionalUldsChange(): void {
     this.additionalUldsChanged.emit([...this.additionalUlds]);
   }
 
-  // Debug method to check current state
+  // Step 4. Helpers and Utilities
+
+  // a. set status for ULD found
+  private setUldFoundStatus(uldItemIdentifier: string, found: boolean): void {
+    const uld = this.uiUldItems.find(
+      (item) => item.uldItemIdentifier === uldItemIdentifier
+    );
+
+    if (uld) {
+      uld.isFound = found;
+      return;
+    }
+
+    const additionalUld = this.additionalUlds.find(
+      (item) => item.uldIdentifier === uldItemIdentifier
+    );
+
+    if (additionalUld) {
+      additionalUld.isFound = found;
+    }
+  }
+
+  // b. computes count
+  public getCounts(items: any[]): {
+    total: number;
+    serviceable: number;
+    damaged: number;
+  } {
+    return {
+      total: items.length,
+      serviceable: items.filter((item) => item.conditionId === 'Serviceable')
+        .length,
+      damaged: items.filter((item) => item.conditionId === 'Damaged').length,
+    };
+  }
+
+  // c. computes location counts
+  public locationCounts: {
+    [location: string]: { total: number; serviceable: number; damaged: number };
+  } = {};
+
+  // d. filters location on selectedLocation Input
+  public getFilteredLocations(): string[] {
+    if (!this.selectedLocation || this.selectedLocation.length === 0) {
+      return Object.keys(this.groupedData).sort((a, b) => a.localeCompare(b));
+    }
+
+    // Return only the locations that match selectedLocation
+    return Object.keys(this.groupedData)
+      .filter((location) => this.selectedLocation.includes(location))
+      .sort((a, b) => a.localeCompare(b));
+  }
+
+  // e. reinitialize accordion states when filtering changes [try real-time here]
+  private reinitializeAccordionStatesForFiltered(): void {
+    const filteredLocations = this.getFilteredLocations();
+
+    filteredLocations.forEach((location, locationIndex) => {
+      const locationKey = 'location-' + locationIndex;
+      if (!this.accordionState.hasOwnProperty(locationKey)) {
+        this.accordionState[locationKey] = true; // collapse by default
+      }
+
+      // Initialize accordion states for all ULD types within each filtered location
+      if (this.groupedData[location]) {
+        Object.keys(this.groupedData[location]).forEach(
+          (uldType, typeIndex) => {
+            const typeKey = 'type-' + locationIndex + '-' + typeIndex;
+            if (!this.accordionState.hasOwnProperty(typeKey)) {
+              this.accordionState[typeKey] = true; // Set to true if you want them expanded by default
+            }
+          }
+        );
+      }
+    });
+  }
+
+  // f. sorts ULD types
+  public getSortedTypes(location: string): string[] {
+    const typeGroups = this.groupedData[location] || {};
+    return Object.keys(typeGroups).sort((a, b) => {
+      const aIsAdditional = a === 'AdditionalUlds';
+      const bIsAdditional = b === 'AdditionalUlds';
+      if (aIsAdditional && !bIsAdditional) return 1; // a after b
+      if (!aIsAdditional && bIsAdditional) return -1; // a before b
+      return a.localeCompare(b);
+    });
+  }
+
+  // g. finds ULD in current UI [to check conditions of addition]
+  private findUldInData(uldIdentifier: string): {
+    found: boolean;
+    location?: string;
+    uldType?: string;
+    isAdditional?: boolean;
+  } {
+    // Check in regular ULDs
+    const regularUld = this.uiUldItems.find(
+      (item) => item.uldItemIdentifier === uldIdentifier
+    );
+    if (regularUld) {
+      return {
+        found: true,
+        location: regularUld.locationName,
+        uldType: regularUld.uldTypeShortCode,
+        isAdditional: false,
+      };
+    }
+
+    // Check in additional ULDs
+    const additionalUld = this.additionalUlds.find(
+      (item) => item.uldIdentifier === uldIdentifier
+    );
+    if (additionalUld) {
+      return {
+        found: true,
+        location: additionalUld.locationCurrentName,
+        uldType: 'AdditionalUlds',
+        isAdditional: true,
+      };
+    }
+    return { found: false };
+  }
+
+  // h. sorts additional ULDs
+  private sortAdditionalUlds(): void {
+    this.additionalUlds = [...this.additionalUlds].sort((a: any, b: any) => {
+      const aId = (a.uldIdentifier || '').toString();
+      const bId = (b.uldIdentifier || '').toString();
+      return aId.localeCompare(bId);
+    });
+  }
+
+  // i. A Debug method
   public debugCurrentState(): void {
     console.log('=== Current State Debug ===');
     console.log('Regular ULDs:', this.uiUldItems.length);
