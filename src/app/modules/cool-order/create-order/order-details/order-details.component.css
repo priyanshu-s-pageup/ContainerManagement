@@ -1,0 +1,206 @@
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  max-width: 100%;
+}
+
+.card h3 {
+  margin: 0 0 24px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #000;
+  line-height: 1.2;
+}
+
+.form-row {
+  display: grid;
+  gap: 24px;
+  margin-bottom: 20px;
+
+
+}
+
+.awb-input {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid #ff6b35;
+  padding: 10px 0;
+  width: 33.33%;
+}
+
+/* Three even columns per row to align fields at 33.33% each */
+.form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-row-2 { grid-template-columns: 1fr 2fr; }
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+
+.form-input,
+.form-select {
+  border: none;
+  border-bottom: 2px solid #ff6b35;
+  padding: 10px 0;
+  font-size: 14px;
+  background: transparent;
+  outline: none;
+  color: #333;
+  width: 100%;
+}
+
+.form-input::placeholder,
+.form-select::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-bottom-color: #ff6b35;
+}
+
+.column-1 { padding: 10px 0; }
+
+.validator.invalid {
+  box-shadow: inset 0 -2px 0 0 #ffb3ba;
+  width: 33.33%;
+}
+
+
+
+.awb-prefix-input {
+  width: 56px;
+  text-align: center;
+  font-size: 14px;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #333;
+}
+
+.awb-suffix {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding-left: 8px;
+  font-size: 14px;
+  color: #333;
+}
+
+.awb-separator {
+  margin: 0 8px;
+  font-size: 14px;
+  color: #333;
+}
+
+.datetime-input {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid #ff6b35;
+  padding: 10px 0;
+  gap: 8px;
+}
+
+.datetime-label,
+.datetime-label-top {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+/* Ensure any direct label in a form group (e.g., AWB, UTC) matches top label style */
+.form-group > label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.datetime-input .form-input {
+  border: none;
+  flex: 1;
+  background: transparent;
+  outline: none;
+  padding: 0;
+  font-size: 14px;
+  color: #333;
+  width: 100%;
+}
+
+/* Hide the native picker indicator and input UI while keeping functionality */
+.native-hidden::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  display: none;
+}
+.native-hidden {
+  color: transparent;
+  caret-color: transparent;
+}
+
+.calendar-icon {
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+}
+
+.select-with-caret {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.select-with-caret .form-select {
+  width: 100%;
+  padding-right: 20px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.select-with-caret .caret {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #333;
+}
+
+/* Normalize vertical rhythm so all controls align on the same baseline */
+.form-input,
+.form-select,
+.awb-input,
+.datetime-input {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  width: 100%;
+}
+
+/* Keep AWB suffix visually similar to the reference input */
+.awb-suffix::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .form-row-3,
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Remove browser increment/decrement controls for number inputs */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}

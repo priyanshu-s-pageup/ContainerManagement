@@ -1,0 +1,95 @@
+<div class="card">
+  <h3>Order details</h3>
+
+  <!-- Row 1: AWB | AWB Org* | AWB Dest* -->
+  <div class="form-row form-row-3">
+    <div class="form-group awb-group">
+      <label for="awb-prefix">AWB</label>
+      <div class="awb-input validator">
+        <input id="awb-prefix" type="text" class="awb-prefix-input" placeholder="" inputmode="numeric" (input)="onAwbPrefixInput($event)"/>
+        <span class="awb-separator">-</span>
+        <input type="text" class="awb-suffix" placeholder="" inputmode="numeric" (input)="onAwbSuffixInput($event)" />
+      </div>
+    </div>
+    <div class="form-group validator">
+      <input type="text" class="form-input" placeholder="AWB Org" (input)="onCodeInput($event)" required aria-required="true" [(ngModel)]="awbOrg" name="awbOrg" />
+      <!-- <small *ngIf="!awbOrg" style="color:#d32f2f">Required.</small> -->
+      <small *ngIf="awbOrg && !supplier" style="color:#d32f2f">please select the supplier</small>
+    </div>
+    <div class="form-group validator">
+      <input type="text" class="form-input" placeholder="AWB Dest" (input)="onCodeInput($event)" required aria-required="true" [(ngModel)]="awbDest" name="awbDest" />
+      <!-- <small *ngIf="!awbDest" style="color:#d32f2f">Required.</small> -->
+      <small *ngIf="awbDest && !supplier" style="color:#d32f2f">please select the supplier</small>
+    </div>
+  </div>
+
+  <!-- Row 2: Customer Pickup Port* | Planned Lease Start* | UTC -->
+  <div class="form-row form-row-3">
+    <div class="form-group validator">
+      <input type="text" class="form-input" placeholder="Customer Pickup Port" (input)="onCodeInput($event)" required aria-required="true" [(ngModel)]="pickupPort" name="pickupPort" />
+      <!-- <small *ngIf="!pickupPort" style="color:#d32f2f">Required.</small> -->
+      <small *ngIf="pickupPort && !supplier" style="color:#d32f2f">please select the supplier</small>
+    </div>
+    <div class="form-group validator">
+      <label class="datetime-label-top">Planned Lease Start</label>
+      <div class="datetime-input">
+        <span class="calendar-icon" (click)="openStartPicker(startPicker)">📅</span>
+        <input #startPicker type="datetime-local" class="form-input native-hidden" [min]="minStartIso" [(ngModel)]="plannedLeaseStart" name="leaseStart" (change)="onStartChange()" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="datetime-label-top">UTC</label>
+      <div class="datetime-input">
+        <span class="calendar-icon" (click)="openUtcStartPicker(utcStartPicker)">📅</span>
+        <input #utcStartPicker type="datetime-local" class="form-input native-hidden" (change)="onUtcStartPickerChange(utcStartPicker.value)" />
+        <input type="text" class="form-input" [(ngModel)]="utcStartInput" name="utcStart" placeholder="YYYY-MM-DDTHH:mmZ" (change)="onUtcStartChange()" required aria-required="true" />
+        <!-- <small *ngIf="!utcStartInput" style="color:#d32f2f">Required.</small> -->
+        <small *ngIf="utcStartInput && !supplier" style="color:#d32f2f">please select the supplier</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Pickup Location* | Booked Rental Days* -->
+  <div class="form-row form-row-2">
+    <div class="form-group validator">
+      <div class="select-with-caret">
+        <select class="form-select">
+          <option value="">Pickup Location *</option>
+          <option value="terminal1">Terminal 1</option>
+          <option value="terminal2">Terminal 2</option>
+          <option value="warehouse">Warehouse</option>
+        </select>
+        <span class="caret">▾</span>
+      </div>
+    </div>
+    <div class="form-group validator">
+      <input type="number" class="form-input" placeholder="Booked Rental Days" min="1" step="1" [(ngModel)]="bookedRentalDays" name="bookedDays" (change)="onBookedDaysChange()" required aria-required="true" />
+      <!-- <small *ngIf="!bookedRentalDays" style="color:#d32f2f">Required.</small> -->
+    </div>
+  </div>
+
+  <!-- Row 4: Customer Return Port* | Planned Lease End* | UTC -->
+  <div class="form-row form-row-3">
+    <div class="form-group validator">
+      <input type="text" class="form-input" placeholder="Customer Return Port" (input)="onCodeInput($event)" required aria-required="true" [(ngModel)]="returnPort" name="returnPort" />
+      <!-- <small *ngIf="!returnPort" style="color:#d32f2f">Required.</small> -->
+      <small *ngIf="returnPort && !supplier" style="color:#d32f2f">please select the supplier</small>
+    </div>
+    <div class="form-group validator">
+      <label class="datetime-label-top">Planned Lease End</label>
+      <div class="datetime-input">
+        <span class="calendar-icon" (click)="openEndPicker(endPicker)">📅</span>
+        <input #endPicker type="datetime-local" class="form-input native-hidden" [min]="minEndIso" [max]="maxEndIso" [(ngModel)]="plannedLeaseEnd" name="leaseEnd" (change)="onEndChange()" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="datetime-label-top">UTC</label>
+      <div class="datetime-input">
+        <span class="calendar-icon" (click)="openUtcEndPicker(utcEndPicker)">📅</span>
+        <input #utcEndPicker type="datetime-local" class="form-input native-hidden" (change)="onUtcEndPickerChange(utcEndPicker.value)" />
+        <input type="text" class="form-input" [(ngModel)]="utcEndInput" name="utcEnd" placeholder="YYYY-MM-DDTHH:mmZ" (change)="onUtcEndChange()" />
+        <small *ngIf="utcEndInput && !supplier" style="color:#d32f2f">please select the supplier</small>
+      </div>
+    </div>
+  </div>
+</div>

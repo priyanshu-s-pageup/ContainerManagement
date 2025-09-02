@@ -1,0 +1,58 @@
+<div class="card">
+  <div class="card-header">
+    <h3>Flight details</h3>
+    <button class="add-btn" title="Add Flight" (click)="addEntry()">
+      <span class="btn-icon">+</span>
+    </button>
+  </div>
+
+  <ng-container *ngFor="let e of entries; let i = index">
+    <div class="form-row-single">
+      <div class="form-group">
+        <label></label>
+        <input type="text" class="form-input" placeholder="Flight Id" (input)="onFlightIdInput($event)" [(ngModel)]="e.flightId" name="flightId-{{i}}" required aria-required="true" />
+        <!-- <small *ngIf=\"!e.flightId\" style=\"color:#d32f2f\">Required.</small> -->
+        <small *ngIf="e.flightId && !supplier" style="color:#d32f2f">please select the supplier</small>
+      </div>
+      <div class="form-group">
+        <label>Flight Date (LT)*</label>
+        <div class="date-input">
+          <span class="calendar-icon" (click)="openFlightDatePicker(picker)">📅</span>
+          <input #picker type="datetime-local" class="form-input native-hidden" [min]="minFlightDateIso" [(ngModel)]="e.flightDateLocal" name="flightDateLocal-{{i}}" (change)="onFlightDateChange(i)" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label></label>
+        <input type="text" class="form-input" placeholder="Origin" (input)="onCityCodeInput($event)" [(ngModel)]="e.origin" name="origin-{{i}}" required aria-required="true" />
+        <!-- <small *ngIf=\"!e.origin\" style=\"color:#d32f2f\">Required.</small> -->
+        <small *ngIf="e.origin && !supplier" style="color:#d32f2f">please select the supplier</small>
+      </div>
+      <div class="form-group">
+        <label></label>
+        <input type="text" class="form-input" placeholder="Destination" (input)="onCityCodeInput($event)" [(ngModel)]="e.destination" name="destination-{{i}}" required aria-required="true" />
+        <!-- <small *ngIf=\"!e.destination\" style=\"color:#d32f2f\">Required.</small> -->
+        <small *ngIf="e.destination && !supplier" style="color:#d32f2f">please select the supplier</small>
+      </div>
+      <div class="form-group">
+        <label></label>
+        <select class="form-select" [(ngModel)]="e.productType" name="productType-{{i}}" (change)="onProductTypeChange(i)" required aria-required="true">
+          <option value="">Product Type</option>
+          <option *ngFor="let p of availableProducts" [value]="p.productName">{{ p.productName }}</option>
+        </select>
+        <!-- <small *ngIf=\"!e.productType\" style=\"color:#d32f2f\">Required.</small> -->
+        <small *ngIf="e.productType && !supplier" style="color:#d32f2f">please select the supplier</small>
+      </div>
+      <div class="form-group">
+        <label></label>
+        <div class="uld-qty-input">
+          <input type="number" class="form-input" placeholder="ULD Qty" min="1" step="1" [(ngModel)]="e.uldQty" name="qty-{{i}}" (change)="onQtyChange(i)" required aria-required="true"/>
+          <!-- <small *ngIf=\"!e.uldQty\" style=\"color:#d32f2f\">Required.</small> -->
+          <small *ngIf="e.uldQty && !supplier" style="color:#d32f2f">please select the supplier</small>
+          <div class="uld-actions">
+            <button class="action-icon" title="Remove" (click)="removeEntry(i)" *ngIf="entries.length > 1">🗑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

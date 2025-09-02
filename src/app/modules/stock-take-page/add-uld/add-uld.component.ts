@@ -137,17 +137,12 @@ export class AddUldComponent implements OnChanges {
 
         this.addedUlds = [...this.addedUlds, uldData];
 
-        console.log('Yo: uldData', uldData);
-        console.log('Yo again: addedUlds', this.addedUlds);
-
         this.uldAdded.emit(uldData);
 
-        // Reset again just to be sure
         this.uldForm.get('uldId')?.reset();
         setTimeout(() => this.uldIdInput.nativeElement.focus(), 0);
       } else {
         console.warn('ULD add failed');
-        // You can show a modal or message if needed
       }
     }
   }

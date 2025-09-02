@@ -24,6 +24,8 @@
           >DAM {{ locationCounts[location].damaged || 0 }}</span
         >]
       </span>
+      <span class="spacer"></span>
+      <span class="open-count">(Open: {{ getOpenCountForLocation(location) }})</span>
     </div>
 
     <!-- Card Content (collapsible) -->
@@ -56,6 +58,8 @@
               {{ getCounts(groupedData[location][uldType]).damaged }}
             </span>]
           </span>
+          <span class="spacer"></span>
+          <span class="open-count">(Open: {{ getOpenCountForType(location, uldType) }})</span>
         </div>
 
         <div

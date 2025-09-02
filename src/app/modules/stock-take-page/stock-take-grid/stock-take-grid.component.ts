@@ -742,6 +742,20 @@ export class StockTakeGridComponent implements OnInit, OnChanges {
     [location: string]: { total: number; serviceable: number; damaged: number };
   } = {};
 
+  // [Helper]: computes open (not found) counts
+  public getOpenCountForLocation(location: string): number {
+    const typeGroups = this.groupedData[location];
+    if (!typeGroups) return 0;
+    return Object.values(typeGroups)
+      .flat()
+      .filter((u: any) => !u.isFound).length;
+  }
+
+  public getOpenCountForType(location: string, uldType: string): number {
+    const items = (this.groupedData[location] || {})[uldType] || [];
+    return items.filter((u: any) => !u.isFound).length;
+  }
+
   // d. filters location on selectedLocation Input
   public getFilteredLocations(): string[] {
     if (!this.selectedLocation || this.selectedLocation.length === 0) {
