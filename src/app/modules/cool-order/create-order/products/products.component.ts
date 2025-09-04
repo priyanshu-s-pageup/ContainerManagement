@@ -31,13 +31,25 @@ export class ProductsComponent {
     { selectedGroup: '', selectedProduct: '', productCode: '', quantity: null }
   ];
 
+  // Derived state for template bindings (avoid function calls in HTML)
+  availableOptions: string[][] = [[]];
+  productCodeValid: boolean[] = [false];
+  quantityValid: boolean[] = [false];
+
   constructor() {}
+
+  ngOnInit(): void {
+    this.syncDerivedArraysToEntries();
+    this.recomputeAllDerived();
+  }
 
   addEntry(): void {
     if (this.entries.length >= 5) {
       return;
     }
     this.entries.push({ selectedGroup: '', selectedProduct: '', productCode: '', quantity: null });
+    this.syncDerivedArraysToEntries();
+    this.recomputeEntryDerived(this.entries.length - 1);
     this.publishProducts();
   }
 
@@ -46,6 +58,9 @@ export class ProductsComponent {
       return;
     }
     this.entries.splice(index, 1);
+    this.availableOptions.splice(index, 1);
+    this.productCodeValid.splice(index, 1);
+    this.quantityValid.splice(index, 1);
     this.publishProducts();
   }
 
@@ -54,42 +69,61 @@ export class ProductsComponent {
     if (!entry) { return; }
     entry.selectedProduct = '';
     entry.productCode = '';
+    this.availableOptions[index] = entry.selectedGroup ? (this.productsByGroup[entry.selectedGroup] ?? []) : [];
+    this.productCodeValid[index] = false;
     this.publishProducts();
   }
 
-  availableProducts(index: number): string[] {
-    const group = this.entries[index]?.selectedGroup;
-    return group ? this.productsByGroup[group] ?? [] : [];
-  }
-
-  isProductCodeValid(index: number): boolean {
+  private recomputeEntryDerived(index: number): void {
     const entry = this.entries[index];
-    if (!entry || !entry.selectedProduct || !entry.productCode) {
-      return false;
+    if (!entry) { return; }
+    // available options for select
+    this.availableOptions[index] = entry.selectedGroup ? (this.productsByGroup[entry.selectedGroup] ?? []) : [];
+    // product code validation
+    if (!entry.selectedProduct || !entry.productCode) {
+      this.productCodeValid[index] = false;
+    } else {
+      const lettersOnly = entry.selectedProduct.replace(/[^A-Za-z]/g, '');
+      const expectedPrefix = lettersOnly.slice(0, 3).toUpperCase();
+      const regex = new RegExp(`^${expectedPrefix}[0-9]{4}$`);
+      this.productCodeValid[index] = regex.test(entry.productCode);
     }
-    const lettersOnly = entry.selectedProduct.replace(/[^A-Za-z]/g, '');
-    const expectedPrefix = lettersOnly.slice(0, 3).toUpperCase();
-    const regex = new RegExp(`^${expectedPrefix}[0-9]{4}$`);
-    return regex.test(entry.productCode);
+    // quantity validation
+    const value = entry.quantity;
+    this.quantityValid[index] = typeof value === 'number' && value > 0 && value < 10;
   }
 
-  isQuantityValid(index: number): boolean {
-    const value = this.entries[index]?.quantity;
-    if (value === null || value === undefined) {
-      return false;
+  private recomputeAllDerived(): void {
+    for (let i = 0; i < this.entries.length; i++) {
+      this.recomputeEntryDerived(i);
     }
-    return value > 0 && value < 10;
+  }
+
+  private syncDerivedArraysToEntries(): void {
+    const n = this.entries.length;
+    while (this.availableOptions.length < n) { this.availableOptions.push([]); }
+    while (this.productCodeValid.length < n) { this.productCodeValid.push(false); }
+    while (this.quantityValid.length < n) { this.quantityValid.push(false); }
+    this.availableOptions.length = n;
+    this.productCodeValid.length = n;
+    this.quantityValid.length = n;
   }
 
   onQuantityChange(): void {
+    this.recomputeAllDerived();
     this.publishProducts();
   }
 
   onProductChange(): void {
+    this.recomputeAllDerived();
     this.publishProducts();
   }
 
-  private publishProducts(): void {
+  onProductCodeInput(index: number): void {
+    this.recomputeEntryDerived(index);
+  }
+
+  publishProducts(): void {
     const productToQty = new Map<string, number>();
     for (const e of this.entries) {
       if (!e.selectedProduct) { continue; }
@@ -99,5 +133,11 @@ export class ProductsComponent {
     }
     const list = Array.from(productToQty.entries()).map(([productName, totalQuantity]) => ({ productName, totalQuantity }));
     this.productsChange.emit(list);
+  }
+
+  // Expose a way for parent to force recompute after programmatic patching of entries
+  refreshDerivedState(): void {
+    this.syncDerivedArraysToEntries();
+    this.recomputeAllDerived();
   }
 }

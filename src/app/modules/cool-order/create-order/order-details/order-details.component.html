@@ -3,93 +3,133 @@
 
   <!-- Row 1: AWB | AWB Org* | AWB Dest* -->
   <div class="form-row form-row-3">
-    <div class="form-group awb-group">
-      <label for="awb-prefix">AWB</label>
-      <div class="awb-input validator">
-        <input id="awb-prefix" type="text" class="awb-prefix-input" placeholder="" inputmode="numeric" (input)="onAwbPrefixInput($event)"/>
+    <div class="form-group awb-group example-form">
+      <div class="awb-input validator example-full-width">
+        <mat-form-field appearance="fill" class="example-full-width">
+          <input matInput id="awb-prefix" type="text" inputmode="numeric" [value]="awbPrefix" (input)="onAwbPrefixInput($event)" />
+        </mat-form-field>
         <span class="awb-separator">-</span>
-        <input type="text" class="awb-suffix" placeholder="" inputmode="numeric" (input)="onAwbSuffixInput($event)" />
+        <mat-form-field appearance="fill" class="example-full-width">
+          <input matInput type="text" inputmode="numeric" [value]="awbSuffix" (input)="onAwbSuffixInput($event)" />
+        </mat-form-field>
       </div>
     </div>
-    <div class="form-group validator">
-      <input type="text" class="form-input" placeholder="AWB Org" (input)="onCodeInput($event)" required aria-required="true" [(ngModel)]="awbOrg" name="awbOrg" />
-      <!-- <small *ngIf="!awbOrg" style="color:#d32f2f">Required.</small> -->
-      <small *ngIf="awbOrg && !supplier" style="color:#d32f2f">please select the supplier</small>
+    <div class="form-group validator example-form">
+      <mat-form-field appearance="fill" class="example-full-width">
+        <mat-label>AWB Org</mat-label>
+        <input matInput placeholder="" (input)="onCodeControlInput(awbOrgControl, $event)" [formControl]="awbOrgControl" [errorStateMatcher]="errorStateMatcher" />
+        
+        @if (awbOrgControl.hasError('required')) {
+          <mat-error>AWB Org is <strong>required</strong></mat-error>
+        }
+      </mat-form-field>
     </div>
-    <div class="form-group validator">
-      <input type="text" class="form-input" placeholder="AWB Dest" (input)="onCodeInput($event)" required aria-required="true" [(ngModel)]="awbDest" name="awbDest" />
-      <!-- <small *ngIf="!awbDest" style="color:#d32f2f">Required.</small> -->
-      <small *ngIf="awbDest && !supplier" style="color:#d32f2f">please select the supplier</small>
+    <div class="form-group validator example-form">
+      <mat-form-field appearance="fill" class="example-full-width">
+        <mat-label>AWB Dest</mat-label>
+        <input matInput placeholder="" (input)="onCodeControlInput(awbDestControl, $event)" [formControl]="awbDestControl" [errorStateMatcher]="errorStateMatcher" />
+
+        @if (awbDestControl.hasError('required')) {
+          <mat-error>AWB Dest is <strong>required</strong></mat-error>
+        }
+      </mat-form-field>
     </div>
   </div>
 
   <!-- Row 2: Customer Pickup Port* | Planned Lease Start* | UTC -->
   <div class="form-row form-row-3">
-    <div class="form-group validator">
-      <input type="text" class="form-input" placeholder="Customer Pickup Port" (input)="onCodeInput($event)" required aria-required="true" [(ngModel)]="pickupPort" name="pickupPort" />
-      <!-- <small *ngIf="!pickupPort" style="color:#d32f2f">Required.</small> -->
-      <small *ngIf="pickupPort && !supplier" style="color:#d32f2f">please select the supplier</small>
+    <div class="form-group validator example-form">
+      <mat-form-field appearance="fill" class="example-full-width">
+        <mat-label>Customer Pickup Port</mat-label>
+        <input matInput placeholder="" (input)="onCodeControlInput(pickupPortControl, $event)" [formControl]="pickupPortControl" [errorStateMatcher]="errorStateMatcher" />
+
+        @if (pickupPortControl.hasError('required')) {
+          <mat-error>Pickup Port is <strong>required</strong></mat-error>
+        }
+      </mat-form-field>
     </div>
-    <div class="form-group validator">
-      <label class="datetime-label-top">Planned Lease Start</label>
-      <div class="datetime-input">
-        <span class="calendar-icon" (click)="openStartPicker(startPicker)">📅</span>
-        <input #startPicker type="datetime-local" class="form-input native-hidden" [min]="minStartIso" [(ngModel)]="plannedLeaseStart" name="leaseStart" (change)="onStartChange()" />
-      </div>
+    <div class="form-group validator example-form">
+      <mat-form-field appearance="fill" class="example-full-width">
+        <mat-label>Planned Lease Start</mat-label>
+        <input matInput [matDatepicker]="leaseStartPicker" [formControl]="leaseStartControl" [matDatepickerFilter]="leaseStartFilter" [min]="minStartDate" placeholder="dd MM YY HH:mm">
+        <mat-hint>dd MM YY HH:mm</mat-hint>
+        <mat-datepicker-toggle matIconSuffix [for]="leaseStartPicker"></mat-datepicker-toggle>
+        <mat-datepicker #leaseStartPicker></mat-datepicker>
+        @if (leaseStartControl.hasError('required')) { <mat-error>Planned lease start is <strong>required</strong></mat-error> }
+      </mat-form-field>
     </div>
-    <div class="form-group">
-      <label class="datetime-label-top">UTC</label>
-      <div class="datetime-input">
-        <span class="calendar-icon" (click)="openUtcStartPicker(utcStartPicker)">📅</span>
-        <input #utcStartPicker type="datetime-local" class="form-input native-hidden" (change)="onUtcStartPickerChange(utcStartPicker.value)" />
-        <input type="text" class="form-input" [(ngModel)]="utcStartInput" name="utcStart" placeholder="YYYY-MM-DDTHH:mmZ" (change)="onUtcStartChange()" required aria-required="true" />
-        <!-- <small *ngIf="!utcStartInput" style="color:#d32f2f">Required.</small> -->
-        <small *ngIf="utcStartInput && !supplier" style="color:#d32f2f">please select the supplier</small>
-      </div>
+    <div class="form-group validator example-form">
+      <mat-form-field appearance="fill" class="example-full-width">
+        <mat-label>UTC Start</mat-label>
+        <input matInput [matDatepicker]="utcStartPicker" [formControl]="utcStartDateControl" readonly>
+        <mat-hint>ISO string (UTC)</mat-hint>
+        <mat-datepicker-toggle matIconSuffix [for]="utcStartPicker"></mat-datepicker-toggle>
+        <mat-datepicker #utcStartPicker></mat-datepicker>
+      </mat-form-field>
     </div>
   </div>
 
   <!-- Row 3: Pickup Location* | Booked Rental Days* -->
   <div class="form-row form-row-2">
-    <div class="form-group validator">
-      <div class="select-with-caret">
-        <select class="form-select">
-          <option value="">Pickup Location *</option>
-          <option value="terminal1">Terminal 1</option>
-          <option value="terminal2">Terminal 2</option>
-          <option value="warehouse">Warehouse</option>
-        </select>
-        <span class="caret">▾</span>
-      </div>
+    <div class="form-group validator example-form">
+      <mat-form-field appearance="fill" class="example-full-width">
+        <mat-label>Pickup Location</mat-label>
+        <mat-select [(value)]="pickupLocation">
+          <mat-option value="">None</mat-option>
+          <mat-option value="terminal1">Terminal</mat-option>
+          <mat-option value="terminal2">Compound Lodge</mat-option>
+          <mat-option value="warehouse">Warehouse</mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
-    <div class="form-group validator">
-      <input type="number" class="form-input" placeholder="Booked Rental Days" min="1" step="1" [(ngModel)]="bookedRentalDays" name="bookedDays" (change)="onBookedDaysChange()" required aria-required="true" />
-      <!-- <small *ngIf="!bookedRentalDays" style="color:#d32f2f">Required.</small> -->
+    <div class="form-group validator example-form">
+      <mat-form-field appearance="fill" class="example-full-width">
+        <mat-label>Booked Rental Days</mat-label>
+        <input matInput type="number" placeholder="" min="1" step="1" [formControl]="bookedRentalDaysControl" (change)="onBookedDaysChange()" [errorStateMatcher]="errorStateMatcher" />
+         
+        @if (bookedRentalDaysControl.hasError('min') && !bookedRentalDaysControl.hasError('required')) {
+          <mat-error>Minimum is 1 day</mat-error>
+        }
+        @if (bookedRentalDaysControl.hasError('required')) {
+          <mat-error>Booked rental days is <strong>required</strong></mat-error>
+        }
+      </mat-form-field>
     </div>
   </div>
 
   <!-- Row 4: Customer Return Port* | Planned Lease End* | UTC -->
   <div class="form-row form-row-3">
-    <div class="form-group validator">
-      <input type="text" class="form-input" placeholder="Customer Return Port" (input)="onCodeInput($event)" required aria-required="true" [(ngModel)]="returnPort" name="returnPort" />
-      <!-- <small *ngIf="!returnPort" style="color:#d32f2f">Required.</small> -->
-      <small *ngIf="returnPort && !supplier" style="color:#d32f2f">please select the supplier</small>
+    <div class="form-group validator example-form">
+      <mat-form-field appearance="fill" class="example-full-width">
+        <mat-label>Customer Return Port</mat-label>
+        <input matInput placeholder="" (input)="onCodeControlInput(returnPortControl, $event)" [formControl]="returnPortControl" [errorStateMatcher]="errorStateMatcher" />
+         
+        @if (returnPortControl.hasError('pattern') && !returnPortControl.hasError('required')) {
+          <mat-error>Use three letters, e.g. "MAA"</mat-error>
+        }
+        @if (returnPortControl.hasError('required')) {
+          <mat-error>Return Port is <strong>required</strong></mat-error>
+        }
+      </mat-form-field>
     </div>
-    <div class="form-group validator">
-      <label class="datetime-label-top">Planned Lease End</label>
-      <div class="datetime-input">
-        <span class="calendar-icon" (click)="openEndPicker(endPicker)">📅</span>
-        <input #endPicker type="datetime-local" class="form-input native-hidden" [min]="minEndIso" [max]="maxEndIso" [(ngModel)]="plannedLeaseEnd" name="leaseEnd" (change)="onEndChange()" />
-      </div>
+    <div class="form-group validator example-form">
+      <mat-form-field appearance="fill" class="example-full-width">
+        <mat-label>Planned Lease End</mat-label>
+        <input matInput [matDatepicker]="leaseEndPicker" [formControl]="leaseEndControl" [matDatepickerFilter]="leaseEndFilter" [min]="minEndDate" [max]="maxEndDate" placeholder="dd MM YY HH:mm">
+        <mat-hint>dd MM YY HH:mm</mat-hint>
+        <mat-datepicker-toggle matIconSuffix [for]="leaseEndPicker"></mat-datepicker-toggle>
+        <mat-datepicker #leaseEndPicker></mat-datepicker>
+        @if (leaseEndControl.hasError('required')) { <mat-error>Planned lease end is <strong>required</strong></mat-error> }
+      </mat-form-field>
     </div>
-    <div class="form-group">
-      <label class="datetime-label-top">UTC</label>
-      <div class="datetime-input">
-        <span class="calendar-icon" (click)="openUtcEndPicker(utcEndPicker)">📅</span>
-        <input #utcEndPicker type="datetime-local" class="form-input native-hidden" (change)="onUtcEndPickerChange(utcEndPicker.value)" />
-        <input type="text" class="form-input" [(ngModel)]="utcEndInput" name="utcEnd" placeholder="YYYY-MM-DDTHH:mmZ" (change)="onUtcEndChange()" />
-        <small *ngIf="utcEndInput && !supplier" style="color:#d32f2f">please select the supplier</small>
-      </div>
+    <div class="form-group validator example-form">
+      <mat-form-field appearance="fill" class="example-full-width">
+        <mat-label>UTC End</mat-label>
+        <input matInput [matDatepicker]="utcEndPicker" [formControl]="utcEndDateControl" readonly>
+        <mat-hint>ISO string (UTC)</mat-hint>
+        <mat-datepicker-toggle matIconSuffix [for]="utcEndPicker"></mat-datepicker-toggle>
+        <mat-datepicker #utcEndPicker></mat-datepicker>
+      </mat-form-field>
     </div>
   </div>
 </div>

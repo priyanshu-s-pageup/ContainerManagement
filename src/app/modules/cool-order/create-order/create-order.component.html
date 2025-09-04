@@ -1,9 +1,8 @@
-<h2>:   Create the first working version before getting this reviewed</h2>
-
 <div class="create-order-container">
   <!-- Header Section with Selector and Options -->
   <div class="header-section">
     <div class="selector-section">
+
       <div class="selector-container">
         <div class="form-group">
           <label>Order Type*</label>
@@ -27,37 +26,38 @@
         </div>
       </div>
     </div>
-    <div class="options-section">
+
+    <div class="options-section" *ngIf="!viewOnly">
       <div class="options-container">
-        <button class="action-btn refresh-btn" title="Refresh">
+        <button class="action-btn refresh-btn" title="Refresh" (click)="onRefresh()">
           <span class="btn-icon">↻</span>
         </button>
-        <button class="action-btn save-btn" title="Save">
+        <button class="action-btn save-btn" title="Save" (click)="onSaveDraft()">
           <span class="btn-icon">💾</span>
         </button>
-        <button class="action-btn forward-btn" title="Forward">
+        <button class="action-btn forward-btn" title="Publish" (click)="onPublish()" *ngIf="!editMode">
           <span class="btn-icon">→</span>
         </button>
       </div>
     </div>
+    
   </div>
 
   <!-- Main Content Area -->
-  <div class="main-content">
+  <div class="main-content" [class.view-only]="viewOnly">
     <!-- Top Row: Order Details and Products side by side -->
-    <div class="top-row">
+    <div class="top-row" *ngIf="resetFlag">
       <div class="order-details-section">
-        <app-order-details [supplier]="supplier"></app-order-details>
+        <app-order-details [supplier]="supplier" #orderDetailsRef></app-order-details>
       </div>
       <div class="products-section">
-        <app-products [supplier]="supplier" (productsChange)="handleProductsChange($event)"></app-products>
+        <app-products [supplier]="supplier" (productsChange)="handleProductsChange($event)" #productsRef></app-products>
       </div>
     </div>
 
     <!-- Flight Details Section -->
-    <div class="flight-details-section">
-      <app-flight-details [supplier]="supplier" [availableProducts]="productsSummary"></app-flight-details>
+    <div class="flight-details-section" *ngIf="resetFlag">
+      <app-flight-details [supplier]="supplier" [availableProducts]="productsSummary" #flightDetailsRef></app-flight-details>
     </div>
-
   </div>
 </div>

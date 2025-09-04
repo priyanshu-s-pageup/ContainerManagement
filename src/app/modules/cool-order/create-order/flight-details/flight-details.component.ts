@@ -70,6 +70,12 @@ export class FlightDetailsComponent {
     this.entries.splice(index, 1);
   }
 
+  public copyEntry(index: number): void {
+    const e = this.entries[index];
+    if (!e) { return; }
+    this.entries.splice(index + 1, 0, { ...e });
+  }
+
   public enforceQuantityBounds(index: number): void {
     const entry = this.entries[index];
     if (!entry) { return; }

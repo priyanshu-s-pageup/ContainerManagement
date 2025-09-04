@@ -1,0 +1,59 @@
+Ⓜ️ *There are 8 official lifecycle hooks in Angular 19:*
+
+✅ 1. ngOnChanges(changes: SimpleChanges)
+
+Called when: Any data-bound input property changes. 📌
+
+Applies to: Components and directives with @Input() properties. 📌
+
+Runs: Before ngOnInit() and whenever an @Input changes. 📌
+
+✅ 2. ngOnInit()
+
+Called when: The component is initialized. 📌
+
+Runs: Once after the first ngOnChanges() (if any). 📌
+
+Typical use: Initialization logic (e.g., fetching data). 📌
+
+✅ 3. ngDoCheck()
+
+Called when: Angular runs its change detection. 📌
+
+Runs: Frequently—on every change detection cycle. 📌
+
+Use case: Custom change detection (advanced scenarios). 📌
+
+✅ 4. ngAfterContentInit()
+
+Called when: Angular projects external content into the component. 📌
+
+Applies to: Components with <ng-content>. 📌
+
+Runs: Once after content is projected. 📌
+
+✅ 5. ngAfterContentChecked()
+
+Called when: Angular checks the content projected into the component. 📌
+
+Runs: After every ngDoCheck(). 📌
+
+✅ 6. ngAfterViewInit()
+
+Called when: Component’s view and child views are fully initialized. 📌
+
+Applies to: Components using @ViewChild, @ViewChildren. 📌
+
+Typical use: DOM or component child manipulation. 📌
+
+✅ 7. ngAfterViewChecked()
+
+Called when: Angular checks the component’s view and child views. 📌
+
+Runs: After every ngAfterViewInit() and subsequent change detection cycles. 📌
+
+✅ 8. ngOnDestroy()
+
+Called when: The component or directive is about to be destroyed. 📌
+
+Typical use: Clean-up tasks like unsubscribing from Observables, stopping timers, etc. 📌

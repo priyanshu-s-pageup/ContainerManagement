@@ -1,13 +1,42 @@
-import { Component } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
+import { FormControl, FormGroupDirective, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { ErrorStateMatcher, provideNativeDateAdapter, MAT_DATE_LOCALE, MAT_DATE_FORMATS, DateAdapter, NativeDateAdapter } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatSelectModule } from '@angular/material/select';
+
+class InstantErrorStateMatcher implements ErrorStateMatcher {
+  // Show error if control is invalid and either dirty, touched, or form submitted
+  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+    const isSubmitted = !!form && form.submitted;
+    return !!(control && control.invalid && (control.dirty || control.touched || isSubmitted));
+  }
+}
 
 @Component({
   selector: 'app-order-details',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatDatepickerModule, MatSelectModule],
   templateUrl: './order-details.component.html',
-  styleUrl: './order-details.component.css'
+  styleUrl: './order-details.component.css',
+  providers: [
+    provideNativeDateAdapter(),
+    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
+    { provide: MAT_DATE_FORMATS, useValue: {
+      parse: { dateInput: { day: '2-digit', month: '2-digit', year: '2-digit' } },
+      display: {
+        dateInput: { day: '2-digit', month: '2-digit', year: '2-digit' },
+        monthYearLabel: { month: 'short', year: 'numeric' },
+        dateA11yLabel: { day: '2-digit', month: 'long', year: 'numeric' },
+        monthYearA11yLabel: { month: 'long', year: 'numeric' }
+      }
+    } }
+  ],
+  encapsulation: ViewEncapsulation.None
+
 })
 export class OrderDetailsComponent {
   @Input() supplier: string = '';
@@ -16,12 +45,14 @@ export class OrderDetailsComponent {
     const input = event.target as HTMLInputElement;
     const digitsOnly = (input.value || '').replace(/\D/g, '').slice(0, 3);
     input.value = digitsOnly;
+    this.awbPrefix = digitsOnly;
   }
 
   onAwbSuffixInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const digitsOnly = (input.value || '').replace(/\D/g, '').slice(0, 6);
     input.value = digitsOnly;
+    this.awbSuffix = digitsOnly;
   }
 
   // Lease dates
@@ -30,10 +61,100 @@ export class OrderDetailsComponent {
   utcStartInput: string = '';
   utcEndInput: string = '';
   bookedRentalDays: number | null = null;
+  // Reactive form controls for Material error handling
+  awbOrgControl = new FormControl('', [Validators.required, Validators.pattern(/^[A-Za-z]{3}$/)]);
+  awbDestControl = new FormControl('', [Validators.required, Validators.pattern(/^[A-Za-z]{3}$/)]);
+  pickupPortControl = new FormControl('', [Validators.required, Validators.pattern(/^[A-Za-z]{3}$/)]);
+  returnPortControl = new FormControl('', [Validators.required, Validators.pattern(/^[A-Za-z]{3}$/)]);
+  bookedRentalDaysControl = new FormControl<number | null>(null, [Validators.required, Validators.min(1)]);
+  // Datepicker controls (local and UTC serialized)
+  leaseStartControl = new FormControl<Date | null>(null, [Validators.required]);
+  leaseEndControl = new FormControl<Date | null>(null, [Validators.required]);
+  utcStartDateControl = new FormControl<string | null>(null);
+  utcEndDateControl = new FormControl<string | null>(null);
+  // Backing strings for legacy template-driven bindings used elsewhere
+  awbPrefix: string = '020';
+  awbSuffix: string = '';
   awbOrg: string = '';
   awbDest: string = '';
   pickupPort: string = '';
   returnPort: string = '';
+  pickupLocation: string = '';
+  errorStateMatcher = new InstantErrorStateMatcher();
+
+  constructor() {
+    // Keep end date within allowed range when start date or booked days change
+    this.leaseStartControl.valueChanges.subscribe(() => {
+      this.syncUtcFromLocalStart();
+      this.clampLeaseEndWithinRange();
+    });
+    this.bookedRentalDaysControl.valueChanges.subscribe(() => {
+      this.clampLeaseEndWithinRange();
+    });
+    this.leaseEndControl.valueChanges.subscribe(() => {
+      this.syncUtcFromLocalEnd();
+    });
+  }
+
+  // Constraints (local timezone for native date adapter)
+  get minStartDate(): Date {
+    const now = new Date();
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+    return tomorrow;
+  }
+
+  get minEndDate(): Date | null {
+    return this.leaseStartControl.value ? this.startOfDay(this.leaseStartControl.value) : null;
+  }
+
+  get maxEndDate(): Date | null {
+    const start = this.leaseStartControl.value ? this.startOfDay(this.leaseStartControl.value) : null;
+    const days = this.bookedRentalDaysControl.value || 0;
+    if (!start || !days || days <= 0) { return null; }
+    const max = new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
+    return max;
+  }
+
+  leaseStartFilter = (d: Date | null) => {
+    if (!d) { return true; }
+    return this.startOfDay(d).getTime() >= this.minStartDate.getTime();
+  };
+
+  leaseEndFilter = (d: Date | null) => {
+    if (!d) { return true; }
+    const day = this.startOfDay(d).getTime();
+    const min = this.minEndDate ? this.minEndDate.getTime() : -Infinity;
+    const max = this.maxEndDate ? this.maxEndDate.getTime() : Infinity;
+    return day >= min && day <= max;
+  };
+
+  private startOfDay(d: Date): Date {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+  }
+
+  private clampLeaseEndWithinRange(): void {
+    const min = this.minEndDate;
+    const max = this.maxEndDate;
+    const end = this.leaseEndControl.value;
+    if (!end) { return; }
+    let clamped = this.startOfDay(end);
+    if (min && clamped.getTime() < min.getTime()) { clamped = min; }
+    if (max && clamped.getTime() > max.getTime()) { clamped = max; }
+    if (clamped.getTime() !== this.startOfDay(end).getTime()) {
+      this.leaseEndControl.setValue(clamped);
+      this.syncUtcFromLocalEnd();
+    }
+  }
+
+  private syncUtcFromLocalStart(): void {
+    const start = this.leaseStartControl.value ? this.startOfDay(this.leaseStartControl.value) : null;
+    this.utcStartDateControl.setValue(start ? new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())).toISOString() : null);
+  }
+
+  private syncUtcFromLocalEnd(): void {
+    const end = this.leaseEndControl.value ? this.startOfDay(this.leaseEndControl.value) : null;
+    this.utcEndDateControl.setValue(end ? new Date(Date.UTC(end.getFullYear(), end.getMonth(), end.getDate())).toISOString() : null);
+  }
 
   get minStartIso(): string {
     const now = new Date();
@@ -158,6 +279,19 @@ export class OrderDetailsComponent {
     const input = event.target as HTMLInputElement;
     const letters = (input.value || '').replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3);
     input.value = letters;
+  }
+
+  // Three-letter enforcement for Reactive FormControls
+  onCodeControlInput(control: FormControl, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const letters = (input.value || '').replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3);
+    // Update both the DOM input and the control to keep them in sync
+    if (input.value !== letters) {
+      input.value = letters;
+    }
+    if (control.value !== letters) {
+      control.setValue(letters, { emitEvent: true });
+    }
   }
 
   // Allow setting dates from UTC inputs

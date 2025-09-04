@@ -9,9 +9,6 @@
   <form>
     <ng-container *ngFor="let entry of entries; let i = index">
       <div class="form-row" style="align-items:center; justify-content:space-between; margin-top:8px;">
-        <div>
-          <strong>Product {{ i + 1 }}</strong>
-        </div>
         <div *ngIf="i > 0">
           <button type="button" class="add-btn" title="Remove" (click)="removeEntry(i)">−</button>
         </div>
@@ -31,9 +28,9 @@
             class="form-input"
             placeholder="Product code"
             [(ngModel)]="entry.productCode"
-            name="productCode-{{i}}" required aria-required="true"
+            name="productCode-{{i}}" required aria-required="true" (input)="onProductCodeInput(i)"
           />
-          <small *ngIf="entry.productCode && !isProductCodeValid(i)" style="color:#d32f2f">Invalid code. Use first 3 letters + 4 digits.</small>
+          <small *ngIf="entry.productCode && !productCodeValid[i]" style="color:#d32f2f">Invalid code. Use first 3 letters + 4 digits.</small>
           <small *ngIf="entry.productCode && !supplier" style="color:#d32f2f">please select the supplier</small>
         </div>
       </div>
@@ -42,8 +39,8 @@
         <div class="form-group">
           <select class="form-select" [(ngModel)]="entry.selectedProduct" name="product-{{i}}" (change)="onProductChange()" required aria-required="true">
             <option value="">Product</option>
-            <ng-container *ngIf="availableProducts(i).length; else noProducts">
-              <option *ngFor="let p of availableProducts(i)" [value]="p">{{ p }}</option>
+            <ng-container *ngIf="availableOptions[i].length; else noProducts">
+              <option *ngFor="let p of availableOptions[i]" [value]="p">{{ p }}</option>
             </ng-container>
           </select>
           <!-- <small *ngIf="!entry.selectedProduct" style="color:#d32f2f">Required.</small> -->
@@ -64,7 +61,7 @@
             (change)="onQuantityChange()" required aria-required="true"
           />
           <!-- <small *ngIf="!entry.quantity" style="color:#d32f2f">Required.</small> -->
-          <small *ngIf="entry.quantity !== null && !isQuantityValid(i)" style="color:#d32f2f">Quantity must be 1-9.</small>
+          <small *ngIf="entry.quantity !== null && !quantityValid[i]" style="color:#d32f2f">Quantity must be 1-9.</small>
           <small *ngIf="entry.quantity && !supplier" style="color:#d32f2f">please select the supplier</small>
         </div>
       </div>
