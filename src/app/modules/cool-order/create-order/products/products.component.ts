@@ -31,10 +31,9 @@ export class ProductsComponent {
     { selectedGroup: '', selectedProduct: '', productCode: '', quantity: null }
   ];
 
-  // Derived state for template bindings (avoid function calls in HTML)
-  availableOptions: string[][] = [[]];
-  productCodeValid: boolean[] = [false];
-  quantityValid: boolean[] = [false];
+  public availableOptions: string[][] = [[]];
+  public productCodeValid: boolean[] = [false];
+  public quantityValid: boolean[] = [false];
 
   constructor() {}
 
@@ -43,7 +42,7 @@ export class ProductsComponent {
     this.recomputeAllDerived();
   }
 
-  addEntry(): void {
+  public addEntry(): void {
     if (this.entries.length >= 5) {
       return;
     }
@@ -53,7 +52,7 @@ export class ProductsComponent {
     this.publishProducts();
   }
 
-  removeEntry(index: number): void {
+  public removeEntry(index: number): void {
     if (this.entries.length === 1) {
       return;
     }
@@ -64,7 +63,7 @@ export class ProductsComponent {
     this.publishProducts();
   }
 
-  onGroupChange(index: number): void {
+  public onGroupChange(index: number): void {
     const entry = this.entries[index];
     if (!entry) { return; }
     entry.selectedProduct = '';
@@ -109,21 +108,21 @@ export class ProductsComponent {
     this.quantityValid.length = n;
   }
 
-  onQuantityChange(): void {
+  public onQuantityChange(): void {
     this.recomputeAllDerived();
     this.publishProducts();
   }
 
-  onProductChange(): void {
+  public onProductChange(): void {
     this.recomputeAllDerived();
     this.publishProducts();
   }
 
-  onProductCodeInput(index: number): void {
+  public onProductCodeInput(index: number): void {
     this.recomputeEntryDerived(index);
   }
 
-  publishProducts(): void {
+  public publishProducts(): void {
     const productToQty = new Map<string, number>();
     for (const e of this.entries) {
       if (!e.selectedProduct) { continue; }
@@ -135,8 +134,7 @@ export class ProductsComponent {
     this.productsChange.emit(list);
   }
 
-  // Expose a way for parent to force recompute after programmatic patching of entries
-  refreshDerivedState(): void {
+  public refreshDerivedState(): void {
     this.syncDerivedArraysToEntries();
     this.recomputeAllDerived();
   }

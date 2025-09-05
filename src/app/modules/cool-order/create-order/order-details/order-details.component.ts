@@ -40,15 +40,16 @@ class InstantErrorStateMatcher implements ErrorStateMatcher {
 })
 export class OrderDetailsComponent {
   @Input() supplier: string = '';
+
   // AWB inputs
-  onAwbPrefixInput(event: Event): void {
+  public onAwbPrefixInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const digitsOnly = (input.value || '').replace(/\D/g, '').slice(0, 3);
     input.value = digitsOnly;
     this.awbPrefix = digitsOnly;
   }
 
-  onAwbSuffixInput(event: Event): void {
+  public onAwbSuffixInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const digitsOnly = (input.value || '').replace(/\D/g, '').slice(0, 6);
     input.value = digitsOnly;
@@ -56,34 +57,34 @@ export class OrderDetailsComponent {
   }
 
   // Lease dates
-  plannedLeaseStart: string = ''; // ISO-like local string for datetime-local
-  plannedLeaseEnd: string = '';
-  utcStartInput: string = '';
-  utcEndInput: string = '';
-  bookedRentalDays: number | null = null;
-  // Reactive form controls for Material error handling
-  awbOrgControl = new FormControl('', [Validators.required, Validators.pattern(/^[A-Za-z]{3}$/)]);
-  awbDestControl = new FormControl('', [Validators.required, Validators.pattern(/^[A-Za-z]{3}$/)]);
-  pickupPortControl = new FormControl('', [Validators.required, Validators.pattern(/^[A-Za-z]{3}$/)]);
-  returnPortControl = new FormControl('', [Validators.required, Validators.pattern(/^[A-Za-z]{3}$/)]);
-  bookedRentalDaysControl = new FormControl<number | null>(null, [Validators.required, Validators.min(1)]);
-  // Datepicker controls (local and UTC serialized)
-  leaseStartControl = new FormControl<Date | null>(null, [Validators.required]);
-  leaseEndControl = new FormControl<Date | null>(null, [Validators.required]);
-  utcStartDateControl = new FormControl<string | null>(null);
-  utcEndDateControl = new FormControl<string | null>(null);
-  // Backing strings for legacy template-driven bindings used elsewhere
-  awbPrefix: string = '020';
-  awbSuffix: string = '';
-  awbOrg: string = '';
-  awbDest: string = '';
-  pickupPort: string = '';
-  returnPort: string = '';
-  pickupLocation: string = '';
-  errorStateMatcher = new InstantErrorStateMatcher();
+  public plannedLeaseStart: string = ''; // ISO-like local string for datetime-local
+  public plannedLeaseEnd: string = '';
+  public utcStartInput: string = '';
+  public utcEndInput: string = '';
+  public bookedRentalDays: number | null = null;
+
+  public awbOrgControl = new FormControl('', [Validators.required, Validators.pattern(/^[A-Za-z]{3}$/)]);
+  public awbDestControl = new FormControl('', [Validators.required, Validators.pattern(/^[A-Za-z]{3}$/)]);
+  public pickupPortControl = new FormControl('', [Validators.required, Validators.pattern(/^[A-Za-z]{3}$/)]);
+  public returnPortControl = new FormControl('', [Validators.required, Validators.pattern(/^[A-Za-z]{3}$/)]);
+  public bookedRentalDaysControl = new FormControl<number | null>(null, [Validators.required, Validators.min(1)]);
+
+  public leaseStartControl = new FormControl<Date | null>(null, [Validators.required]);
+  public leaseEndControl = new FormControl<Date | null>(null, [Validators.required]);
+  public utcStartDateControl = new FormControl<string | null>(null);
+  public utcEndDateControl = new FormControl<string | null>(null);
+
+  public awbPrefix: string = '020';
+  public awbSuffix: string = '';
+  public awbOrg: string = '';
+  public awbDest: string = '';
+  public pickupPort: string = '';
+  public returnPort: string = '';
+  public pickupLocation: string = '';
+  public errorStateMatcher = new InstantErrorStateMatcher();
 
   constructor() {
-    // Keep end date within allowed range when start date or booked days change
+    // end date within allowed range
     this.leaseStartControl.valueChanges.subscribe(() => {
       this.syncUtcFromLocalStart();
       this.clampLeaseEndWithinRange();
@@ -96,31 +97,18 @@ export class OrderDetailsComponent {
     });
   }
 
-  // Constraints (local timezone for native date adapter)
-  get minStartDate(): Date {
-    const now = new Date();
-    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
-    return tomorrow;
-  }
+  // this one!
+  public minStartDateValue: Date = this.computeMinStartDate();
 
-  get minEndDate(): Date | null {
-    return this.leaseStartControl.value ? this.startOfDay(this.leaseStartControl.value) : null;
-  }
+  public minEndDateValue: Date | null = null;
+  public maxEndDateValue: Date | null = null;
 
-  get maxEndDate(): Date | null {
-    const start = this.leaseStartControl.value ? this.startOfDay(this.leaseStartControl.value) : null;
-    const days = this.bookedRentalDaysControl.value || 0;
-    if (!start || !days || days <= 0) { return null; }
-    const max = new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
-    return max;
-  }
-
-  leaseStartFilter = (d: Date | null) => {
+  public leaseStartFilter = (d: Date | null) => {
     if (!d) { return true; }
-    return this.startOfDay(d).getTime() >= this.minStartDate.getTime();
+    return this.startOfDay(d).getTime() >= this.minStartDateValue.getTime();
   };
 
-  leaseEndFilter = (d: Date | null) => {
+  public leaseEndFilter = (d: Date | null) => {
     if (!d) { return true; }
     const day = this.startOfDay(d).getTime();
     const min = this.minEndDate ? this.minEndDate.getTime() : -Infinity;
@@ -133,6 +121,7 @@ export class OrderDetailsComponent {
   }
 
   private clampLeaseEndWithinRange(): void {
+    this.recomputeDateBounds();
     const min = this.minEndDate;
     const max = this.maxEndDate;
     const end = this.leaseEndControl.value;
@@ -149,6 +138,7 @@ export class OrderDetailsComponent {
   private syncUtcFromLocalStart(): void {
     const start = this.leaseStartControl.value ? this.startOfDay(this.leaseStartControl.value) : null;
     this.utcStartDateControl.setValue(start ? new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())).toISOString() : null);
+    this.recomputeDateBounds();
   }
 
   private syncUtcFromLocalEnd(): void {
@@ -186,14 +176,12 @@ export class OrderDetailsComponent {
     return this.toLocalDatetimeLocalValue(endMax);
   }
 
-  onStartChange(): void {
-    // Enforce min for manual input on local start
+  public onStartChange(): void {
     if (this.plannedLeaseStart && this.plannedLeaseStart < this.minStartIso) {
       this.plannedLeaseStart = this.minStartIso;
     }
     const startDate = this.plannedLeaseStart ? this.parseLocalDatetimeLocalValue(this.plannedLeaseStart) : null;
     this.utcStartInput = startDate ? this.toUtcInputString(startDate) : '';
-    // Reset end if outside range
     if (this.plannedLeaseEnd) {
       if (this.minEndIso && this.plannedLeaseEnd < this.minEndIso) {
         this.plannedLeaseEnd = this.minEndIso;
@@ -206,8 +194,7 @@ export class OrderDetailsComponent {
     this.onEndChange();
   }
 
-  onEndChange(): void {
-    // Enforce range for manual input on local end
+  public onEndChange(): void {
     if (this.plannedLeaseEnd) {
       const min = this.minEndIso;
       const max = this.maxEndIso;
@@ -222,13 +209,11 @@ export class OrderDetailsComponent {
     this.utcEndInput = endDate ? this.toUtcInputString(endDate) : '';
   }
 
-  onBookedDaysChange(): void {
-    // Coerce to 1+ integer, cap reasonably
+  public onBookedDaysChange(): void {
     if (this.bookedRentalDays !== null) {
       const normalized = Math.max(1, Math.floor(this.bookedRentalDays));
       this.bookedRentalDays = normalized;
     }
-    // Adjust end within new range
     if (this.plannedLeaseEnd) {
       const max = this.maxEndIso;
       if (max && this.plannedLeaseEnd > max) {
@@ -237,6 +222,23 @@ export class OrderDetailsComponent {
       }
     }
   }
+
+  private computeMinStartDate(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+  }
+
+  private recomputeDateBounds(): void {
+    const start = this.leaseStartControl.value ? this.startOfDay(this.leaseStartControl.value) : null;
+    this.minEndDateValue = start;
+    const days = this.bookedRentalDaysControl.value || 0;
+    if (!start || !days || days <= 0) { this.maxEndDateValue = null; return; }
+    this.maxEndDateValue = new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
+  }
+
+  // Backwards-compatible getters used internally; templates use cached values
+  private get minEndDate(): Date | null { return this.minEndDateValue; }
+  private get maxEndDate(): Date | null { return this.maxEndDateValue; }
 
   private toLocalDatetimeLocalValue(d: Date): string {
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -275,14 +277,14 @@ export class OrderDetailsComponent {
   }
 
   // Three-letter code enforcement
-  onCodeInput(event: Event): void {
+  public onCodeInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const letters = (input.value || '').replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3);
     input.value = letters;
   }
 
   // Three-letter enforcement for Reactive FormControls
-  onCodeControlInput(control: FormControl, event: Event): void {
+  public onCodeControlInput(control: FormControl, event: Event): void {
     const input = event.target as HTMLInputElement;
     const letters = (input.value || '').replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3);
     // Update both the DOM input and the control to keep them in sync
@@ -295,7 +297,7 @@ export class OrderDetailsComponent {
   }
 
   // Allow setting dates from UTC inputs
-  onUtcStartChange(): void {
+  public onUtcStartChange(): void {
     let date = this.parseUtcInputString(this.utcStartInput);
     if (!date) { return; }
     // Enforce UTC min
@@ -310,7 +312,7 @@ export class OrderDetailsComponent {
     this.onStartChange();
   }
 
-  onUtcEndChange(): void {
+  public onUtcEndChange(): void {
     let date = this.parseUtcInputString(this.utcEndInput);
     if (!date) { return; }
     // Enforce UTC range relative to start and booked days
@@ -334,7 +336,7 @@ export class OrderDetailsComponent {
   }
 
   // Open native pickers via icon
-  openStartPicker(input: HTMLInputElement): void {
+  public openStartPicker(input: HTMLInputElement): void {
     if (typeof (input as any).showPicker === 'function') {
       (input as any).showPicker();
     } else {
@@ -343,7 +345,7 @@ export class OrderDetailsComponent {
     }
   }
 
-  openEndPicker(input: HTMLInputElement): void {
+  public openEndPicker(input: HTMLInputElement): void {
     if (typeof (input as any).showPicker === 'function') {
       (input as any).showPicker();
     } else {
@@ -353,7 +355,7 @@ export class OrderDetailsComponent {
   }
 
   // UTC pickers
-  openUtcStartPicker(input: HTMLInputElement): void {
+  public openUtcStartPicker(input: HTMLInputElement): void {
     if (typeof (input as any).showPicker === 'function') {
       (input as any).showPicker();
     } else {
@@ -362,7 +364,7 @@ export class OrderDetailsComponent {
     }
   }
 
-  openUtcEndPicker(input: HTMLInputElement): void {
+  public openUtcEndPicker(input: HTMLInputElement): void {
     if (typeof (input as any).showPicker === 'function') {
       (input as any).showPicker();
     } else {
@@ -371,7 +373,7 @@ export class OrderDetailsComponent {
     }
   }
 
-  onUtcStartPickerChange(value: string): void {
+  public onUtcStartPickerChange(value: string): void {
     let date = this.parseLocalPickerAsUtc(value);
     if (!date) { return; }
     const minUtc = this.getMinStartUtc();
@@ -383,7 +385,7 @@ export class OrderDetailsComponent {
     this.onStartChange();
   }
 
-  onUtcEndPickerChange(value: string): void {
+  public onUtcEndPickerChange(value: string): void {
     let date = this.parseLocalPickerAsUtc(value);
     if (!date) { return; }
     const startUtc = this.plannedLeaseStart ? this.parseLocalDatetimeLocalValue(this.plannedLeaseStart) : null;
@@ -413,4 +415,5 @@ export class OrderDetailsComponent {
     const msSinceEpoch = Date.UTC(y, m - 1, d, hh, mi, 0, 0);
     return new Date(msSinceEpoch);
   }
+
 }

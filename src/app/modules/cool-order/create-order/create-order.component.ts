@@ -119,24 +119,39 @@ export class CreateOrderComponent {
       this.drafts = [draft];
       console.log(this.drafts);
       try {
-        // Persist saved draft list; upsert by AWB (and id if present)
-        const rawExisting = localStorage.getItem('orderDrafts');
-        const existing = rawExisting ? JSON.parse(rawExisting) : [];
-        const arr = Array.isArray(existing) ? existing : (existing ? [existing] : []);
         const awbPrefix = draft?.orderDetails?.awbPrefix || '';
         const awbSuffix = draft?.orderDetails?.awbSuffix || '';
         const isSameAwb = (d: any) => (d?.orderDetails?.awbPrefix || '') === awbPrefix && (d?.orderDetails?.awbSuffix || '') === awbSuffix;
-        let idx = -1;
-        // Prefer match by id if editing
-        if (this.editMode && draft.id) {
-          idx = arr.findIndex((d: any) => d?.id === draft.id);
+
+        // 1) Try to upsert into published if an order with same AWB exists there
+        const rawPublished = localStorage.getItem('publishedDrafts');
+        const published = rawPublished ? JSON.parse(rawPublished) : [];
+        const pubArr = Array.isArray(published) ? published : (published ? [published] : []);
+        let pubIdx = -1;
+        if (this.editMode && draft.id) { pubIdx = pubArr.findIndex((d: any) => d?.id === draft.id); }
+        if (pubIdx < 0) { pubIdx = pubArr.findIndex((d: any) => isSameAwb(d)); }
+        if (pubIdx >= 0) {
+          pubArr[pubIdx] = { ...draft, lastUpdated: new Date().toISOString() };
+          localStorage.setItem('publishedDrafts', JSON.stringify(pubArr));
+          // Ensure it does not linger in orderDrafts
+          try {
+            const rawDrafts = localStorage.getItem('orderDrafts');
+            const draftsExisting = rawDrafts ? JSON.parse(rawDrafts) : [];
+            const drArr = Array.isArray(draftsExisting) ? draftsExisting : (draftsExisting ? [draftsExisting] : []);
+            const filtered = drArr.filter((d: any) => !isSameAwb(d));
+            localStorage.setItem('orderDrafts', JSON.stringify(filtered));
+          } catch {}
+        } else {
+          // 2) Otherwise upsert into orderDrafts
+          const rawExisting = localStorage.getItem('orderDrafts');
+          const existing = rawExisting ? JSON.parse(rawExisting) : [];
+          const arr = Array.isArray(existing) ? existing : (existing ? [existing] : []);
+          let idx = -1;
+          if (this.editMode && draft.id) { idx = arr.findIndex((d: any) => d?.id === draft.id); }
+          if (idx < 0) { idx = arr.findIndex((d: any) => isSameAwb(d)); }
+          if (idx >= 0) { arr[idx] = draft; } else { arr.push(draft); }
+          localStorage.setItem('orderDrafts', JSON.stringify(arr));
         }
-        // Fallback to match by AWB
-        if (idx < 0) {
-          idx = arr.findIndex((d: any) => isSameAwb(d));
-        }
-        if (idx >= 0) { arr[idx] = draft; } else { arr.push(draft); }
-        localStorage.setItem('orderDrafts', JSON.stringify(arr));
       } catch {}
       if (this.editMode) {
         // Merge into publishedDrafts for immediate persistence in search table
@@ -185,6 +200,32 @@ export class CreateOrderComponent {
     const flightEntries: any[] = this.flightDetailsRef?.entries ?? [];
     const hasValidFlight = flightEntries.some(e => e?.flightId && e?.flightDateLocal && e?.origin && e?.destination && e?.productType && typeof e?.uldQty === 'number' && e.uldQty > 0);
     if (!hasValidFlight) { missing.push('At least one Flight with all fields'); }
+
+    // New validations per requirements
+    const awbOrg: string = (od?.awbOrgControl?.value || '').toUpperCase();
+    const awbDest: string = (od?.awbDestControl?.value || '').toUpperCase();
+    if (awbOrg && !(this.flightDetailsRef?.hasAtLeastOneOriginAwbOrg?.())) {
+      missing.push('At least one flight with Origin equal to AWB Org');
+    }
+    if (awbDest && !(this.flightDetailsRef?.hasAtLeastOneDestinationAwbDest?.())) {
+      missing.push('At least one flight with Destination equal to AWB Dest');
+    }
+
+    // Aggregate equality constraints across all flights
+    if (this.flightDetailsRef && !this.flightDetailsRef.areOrgAllocationsEqual()) {
+      missing.push('For each product, total leaving AWB Org must equal its quantity');
+    }
+    if (this.flightDetailsRef && !this.flightDetailsRef.areDestAllocationsEqual()) {
+      missing.push('For each product, total arriving at AWB Dest must equal its quantity');
+    }
+
+    // Network flow conservation: no intermediate leftovers
+    if (this.flightDetailsRef) {
+      const flow = this.flightDetailsRef.validateAllProductFlows();
+      if (!flow.ok) {
+        missing.push(...flow.errors);
+      }
+    }
 
     if (missing.length) {
       return { valid: false, message: `Please complete: ${missing.join(', ')}` };

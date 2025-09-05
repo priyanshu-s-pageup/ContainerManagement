@@ -1,9 +1,9 @@
 <div class="card">
   <h3>Order details</h3>
 
-  <!-- Row 1: AWB | AWB Org* | AWB Dest* -->
-  <div class="form-row form-row-3">
-    <div class="form-group awb-group example-form">
+  <div class="form-grid">
+    <!-- Column 1: AWB prefix+suffix -->
+    <div class="form-group awb-group example-form col-1">
       <div class="awb-input validator example-full-width">
         <mat-form-field appearance="fill" class="example-full-width">
           <input matInput id="awb-prefix" type="text" inputmode="numeric" [value]="awbPrefix" (input)="onAwbPrefixInput($event)" />
@@ -14,7 +14,8 @@
         </mat-form-field>
       </div>
     </div>
-    <div class="form-group validator example-form">
+    <!-- Column 2: AWB Org -->
+    <div class="form-group validator example-form col-2">
       <mat-form-field appearance="fill" class="example-full-width">
         <mat-label>AWB Org</mat-label>
         <input matInput placeholder="" (input)="onCodeControlInput(awbOrgControl, $event)" [formControl]="awbOrgControl" [errorStateMatcher]="errorStateMatcher" />
@@ -24,7 +25,8 @@
         }
       </mat-form-field>
     </div>
-    <div class="form-group validator example-form">
+    <!-- Column 3: AWB Dest -->
+    <div class="form-group validator example-form col-3">
       <mat-form-field appearance="fill" class="example-full-width">
         <mat-label>AWB Dest</mat-label>
         <input matInput placeholder="" (input)="onCodeControlInput(awbDestControl, $event)" [formControl]="awbDestControl" [errorStateMatcher]="errorStateMatcher" />
@@ -34,11 +36,8 @@
         }
       </mat-form-field>
     </div>
-  </div>
-
-  <!-- Row 2: Customer Pickup Port* | Planned Lease Start* | UTC -->
-  <div class="form-row form-row-3">
-    <div class="form-group validator example-form">
+    <!-- Column 1: Customer Pickup Port -->
+    <div class="form-group validator example-form col-1">
       <mat-form-field appearance="fill" class="example-full-width">
         <mat-label>Customer Pickup Port</mat-label>
         <input matInput placeholder="" (input)="onCodeControlInput(pickupPortControl, $event)" [formControl]="pickupPortControl" [errorStateMatcher]="errorStateMatcher" />
@@ -48,17 +47,19 @@
         }
       </mat-form-field>
     </div>
-    <div class="form-group validator example-form">
+    <!-- Column 2: Planned Lease Start -->
+    <div class="form-group validator example-form col-2">
       <mat-form-field appearance="fill" class="example-full-width">
         <mat-label>Planned Lease Start</mat-label>
-        <input matInput [matDatepicker]="leaseStartPicker" [formControl]="leaseStartControl" [matDatepickerFilter]="leaseStartFilter" [min]="minStartDate" placeholder="dd MM YY HH:mm">
+        <input matInput [matDatepicker]="leaseStartPicker" [formControl]="leaseStartControl" [matDatepickerFilter]="leaseStartFilter" [min]="minStartDateValue" placeholder="dd MM YY HH:mm">
         <mat-hint>dd MM YY HH:mm</mat-hint>
         <mat-datepicker-toggle matIconSuffix [for]="leaseStartPicker"></mat-datepicker-toggle>
         <mat-datepicker #leaseStartPicker></mat-datepicker>
         @if (leaseStartControl.hasError('required')) { <mat-error>Planned lease start is <strong>required</strong></mat-error> }
       </mat-form-field>
     </div>
-    <div class="form-group validator example-form">
+    <!-- Column 3: UTC Start -->
+    <div class="form-group validator example-form col-3">
       <mat-form-field appearance="fill" class="example-full-width">
         <mat-label>UTC Start</mat-label>
         <input matInput [matDatepicker]="utcStartPicker" [formControl]="utcStartDateControl" readonly>
@@ -67,11 +68,8 @@
         <mat-datepicker #utcStartPicker></mat-datepicker>
       </mat-form-field>
     </div>
-  </div>
-
-  <!-- Row 3: Pickup Location* | Booked Rental Days* -->
-  <div class="form-row form-row-2">
-    <div class="form-group validator example-form">
+    <!-- Column 1: Pickup Location -->
+    <div class="form-group validator example-form col-1">
       <mat-form-field appearance="fill" class="example-full-width">
         <mat-label>Pickup Location</mat-label>
         <mat-select [(value)]="pickupLocation">
@@ -82,7 +80,8 @@
         </mat-select>
       </mat-form-field>
     </div>
-    <div class="form-group validator example-form">
+    <!-- Span Columns 2-3: Booked Rental Days -->
+    <div class="form-group validator example-form col-2-3">
       <mat-form-field appearance="fill" class="example-full-width">
         <mat-label>Booked Rental Days</mat-label>
         <input matInput type="number" placeholder="" min="1" step="1" [formControl]="bookedRentalDaysControl" (change)="onBookedDaysChange()" [errorStateMatcher]="errorStateMatcher" />
@@ -95,11 +94,8 @@
         }
       </mat-form-field>
     </div>
-  </div>
-
-  <!-- Row 4: Customer Return Port* | Planned Lease End* | UTC -->
-  <div class="form-row form-row-3">
-    <div class="form-group validator example-form">
+    <!-- Column 1: Customer Return Port -->
+    <div class="form-group validator example-form col-1">
       <mat-form-field appearance="fill" class="example-full-width">
         <mat-label>Customer Return Port</mat-label>
         <input matInput placeholder="" (input)="onCodeControlInput(returnPortControl, $event)" [formControl]="returnPortControl" [errorStateMatcher]="errorStateMatcher" />
@@ -112,17 +108,19 @@
         }
       </mat-form-field>
     </div>
-    <div class="form-group validator example-form">
+    <!-- Column 2: Planned Lease End -->
+    <div class="form-group validator example-form col-2">
       <mat-form-field appearance="fill" class="example-full-width">
         <mat-label>Planned Lease End</mat-label>
-        <input matInput [matDatepicker]="leaseEndPicker" [formControl]="leaseEndControl" [matDatepickerFilter]="leaseEndFilter" [min]="minEndDate" [max]="maxEndDate" placeholder="dd MM YY HH:mm">
+        <input matInput [matDatepicker]="leaseEndPicker" [formControl]="leaseEndControl" [matDatepickerFilter]="leaseEndFilter" [min]="minEndDateValue" [max]="maxEndDateValue" placeholder="dd MM YY HH:mm">
         <mat-hint>dd MM YY HH:mm</mat-hint>
         <mat-datepicker-toggle matIconSuffix [for]="leaseEndPicker"></mat-datepicker-toggle>
         <mat-datepicker #leaseEndPicker></mat-datepicker>
         @if (leaseEndControl.hasError('required')) { <mat-error>Planned lease end is <strong>required</strong></mat-error> }
       </mat-form-field>
     </div>
-    <div class="form-group validator example-form">
+    <!-- Column 3: UTC End -->
+    <div class="form-group validator example-form col-3">
       <mat-form-field appearance="fill" class="example-full-width">
         <mat-label>UTC End</mat-label>
         <input matInput [matDatepicker]="utcEndPicker" [formControl]="utcEndDateControl" readonly>

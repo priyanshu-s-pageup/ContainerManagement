@@ -1,6 +1,6 @@
 .create-order-container {
   background: rgb(235, 235, 235);
-  min-height: 100vh;
+  max-height: 60vh;
   padding: 24px;
   font-family: Arial, sans-serif;
 }
@@ -39,6 +39,9 @@
   gap: 24px;
 }
 
+/* Ensure a right gutter so the Products card doesn't touch the edge */
+.products-section { padding-right: 24px; }
+
 .flight-details-section {
   width: 100%;
 }
@@ -50,7 +53,7 @@
   align-items: flex-end;
   background: white;
   border-radius: 8px;
-  padding: 24px;
+  padding: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
@@ -107,7 +110,7 @@
   gap: 12px;
   background: white;
   border-radius: 8px;
-  padding: 24px;
+  padding: 16px;
   margin-top: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }

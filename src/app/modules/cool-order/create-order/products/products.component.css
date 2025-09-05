@@ -1,21 +1,22 @@
 .card {
   background: white;
   border-radius: 8px;
-  padding: 24px;
+  padding: 14px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   height: fit-content;
+  width: 100%;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
 }
 
 .card-header h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 600;
   color: #333;
   line-height: 1.2;
@@ -50,8 +51,8 @@
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 14px;
 }
 
 .form-group {
@@ -62,8 +63,8 @@
 .form-input {
   border: none;
   border-bottom: 1px solid #ff6b35;
-  padding: 10px 0;
-  font-size: 14px;
+  padding: 8px 0;
+  font-size: 11px;
   background: transparent;
   outline: none;
   color: #333;
@@ -81,8 +82,8 @@
 .form-select {
   border: none;
   border-bottom: 1px solid #ff6b35;
-  padding: 10px 0;
-  font-size: 14px;
+  padding: 8px 0;
+  font-size: 11px;
   background: transparent;
   outline: none;
   color: #333;

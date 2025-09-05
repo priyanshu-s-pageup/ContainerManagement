@@ -1,14 +1,14 @@
 .card {
   background: white;
   border-radius: 8px;
-  padding: 24px;
+  padding: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   max-width: 100%;
 }
 
 .card h3 {
-  margin: 0 0 24px 0;
-  font-size: 18px;
+  margin: 0 0 10px 0;
+  font-size: 20px;
   font-weight: 700;
   color: #000;
   line-height: 1.2;
@@ -41,34 +41,49 @@
 
 
 
-.form-row {
+.form-grid {
   display: grid;
-  gap: 24px;
-  margin-bottom: 20px;
-
-
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
 }
 
+.col-1 { grid-column: 1; }
+.col-2 { grid-column: 2; }
+.col-3 { grid-column: 3; }
+.col-2-3 { grid-column: 2 / 4; }
+
+/* Add breathing room at the right edge of the AWB group so underlines don't touch column 2 */
+.form-grid .awb-group { padding-right: 24px; box-sizing: border-box; overflow: hidden; }
+
+/* Add explicit margin on the suffix field to ensure underline separation */
+.awb-group .mat-mdc-form-field:last-child { margin-right: 12px; }
+
 .awb-input {
-  display: flex;
+  display: grid;
+  grid-template-columns: 40% auto 60%;
   align-items: center;
-  gap: 8px;
+  column-gap: 6px;
   width: 100%;
 }
 
+/* Force underline to stop at column boundary by clipping the inner wrapper */
+.awb-group .mat-mdc-text-field-wrapper { width: 100%; }
+.awb-group .mat-mdc-form-field { width: 100%; }
+
 /* Three even columns per row to align fields at 33.33% each */
+/* legacy classes no longer used but kept for safety */
 .form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
 .form-row-2 { grid-template-columns: 1fr 2fr; }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 1px;
   width: 100%;
 }
 :host ::ng-deep .example-form {
-  min-width: 150px;
-  max-width: 500px;
+  min-width: 90px;
+  max-width: 300px;
   width: 100%;
 }
 
@@ -80,8 +95,8 @@
 .form-select {
   border: none;
   border-bottom: 2px solid #ff6b35;
-  padding: 10px 0;
-  font-size: 14px;
+  padding: 6px 0;
+  font-size: 11px;
   background: transparent;
   outline: none;
   color: #333;
@@ -122,15 +137,15 @@
 
 .datetime-label,
 .datetime-label-top {
-  font-size: 12px;
+  font-size: 9px;
   color: #666;
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 /* Ensure any direct label in a form group (e.g., AWB, UTC) matches top label style */
 .form-group > label {
-  font-size: 12px;
+  font-size: 9px;
   color: #666;
   font-weight: 500;
 }
@@ -141,7 +156,7 @@
   background: transparent;
   outline: none;
   padding: 0;
-  font-size: 14px;
+  font-size: 11px;
   color: #333;
   width: 100%;
 }
@@ -157,7 +172,7 @@
 }
 
 .calendar-icon {
-  font-size: 16px;
+  font-size: 12px;
   color: #666;
   cursor: pointer;
 }
@@ -180,7 +195,7 @@
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 12px;
+  font-size: 9px;
   color: #333;
 }
 
@@ -189,8 +204,8 @@
 .form-select,
 .awb-input,
 .datetime-input {
-  /* padding-top: 10px; */
-  padding-bottom: 10px;
+  /* padding-top: 6px; */
+  padding-bottom: 6px;
   width: 100%;
 }
 
@@ -201,10 +216,8 @@
 }
 
 @media (max-width: 768px) {
-  .form-row-3,
-  .form-row-2 {
-    grid-template-columns: 1fr;
-  }
+  .form-grid { grid-template-columns: 1fr; }
+  .col-1, .col-2, .col-3, .col-2-3 { grid-column: 1; }
 }
 
 /* Remove browser increment/decrement controls for number inputs */
@@ -230,6 +243,22 @@ input[type=number] {
   border-bottom-color: #ff6b35 !important;
 }
 
+/* Ensure orangish underline via MDC variables (idle, hover, focus) */
+.card .mat-mdc-form-field {
+  --mdc-filled-text-field-active-indicator-color: #ff6b35 !important;
+  --mdc-filled-text-field-hover-active-indicator-color: #ff6b35 !important;
+  --mdc-filled-text-field-focus-active-indicator-color: #ff6b35 !important;
+  --mdc-filled-text-field-active-indicator-height: 1px;
+}
+
+/* Mat-select uses the same field container */
+.card .mat-mdc-select-trigger,
+.card .mat-mdc-select {
+  --mdc-filled-text-field-active-indicator-color: #ff6b35 !important;
+  --mdc-filled-text-field-hover-active-indicator-color: #ff6b35 !important;
+  --mdc-filled-text-field-focus-active-indicator-color: #ff6b35 !important;
+}
+
 :host ::ng-deep .mat-mdc-form-field .mdc-text-field__input::placeholder {
   color: #999;
   font-style: italic;
@@ -253,4 +282,18 @@ input[type=number] {
 
 :host ::ng-deep .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
   padding: 0;
+}
+
+:host ::ng-deep .mdc-text-field--filled:not(.mdc-text-field--disabled) { background-color: transparent !important; }
+:host ::ng-deep .mat-mdc-text-field-wrapper.mdc-text-field--filled { background-color: transparent !important; }
+
+/* Strong, scoped overrides to clear filled background inside Order details card */
+.card .mat-mdc-form-field {
+  --mdc-filled-text-field-container-color: transparent !important;
+}
+.card .mdc-text-field--filled:not(.mdc-text-field--disabled) {
+  background-color: transparent !important;
+}
+.card .mat-mdc-text-field-wrapper.mdc-text-field--filled {
+  background-color: transparent !important;
 }

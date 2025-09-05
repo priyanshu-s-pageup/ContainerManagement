@@ -1,7 +1,7 @@
 <div class="card">
   <div class="card-header">
     <h3>Flight details</h3>
-    <button class="add-btn" title="Add Flight" (click)="addEntry()">
+    <button class="add-btn" title="Add Flight" (click)="addEntry()" [disabled]="disableAdd">
       <span class="btn-icon">+</span>
     </button>
   </div>
@@ -18,11 +18,11 @@
         <small *ngIf="e.flightId && !supplier" style="color:#d32f2f">please select the supplier</small>
       </div>
       <div class="form-group">
-        <label>Flight Date (LT)*</label>
-        <div class="date-input">
-          <span class="calendar-icon" (click)="openFlightDatePicker(picker)">📅</span>
-          <input #picker type="datetime-local" class="form-input native-hidden" [min]="minFlightDateIso" [(ngModel)]="e.flightDateLocal" name="flightDateLocal-{{i}}" (change)="onFlightDateChange(i)" />
-        </div>
+        <mat-form-field appearance="fill" class="example-full-width">
+          <input matInput [matDatepicker]="flightDatePicker" placeholder="Flight Date (LT)*" [formControl]="e.flightDateControl" (dateChange)="onFlightDateChange(i)">
+          <mat-datepicker-toggle matIconSuffix [for]="flightDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #flightDatePicker></mat-datepicker>
+        </mat-form-field>
       </div>
       <div class="form-group">
         <label></label>
